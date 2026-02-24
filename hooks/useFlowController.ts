@@ -11,7 +11,7 @@ const getThemePalette = (type: DiagramType): string[] => {
     switch (type) {
         case DiagramType.DATA_ENGINEERING: return [THEME.colors.dataEngineering.storage, THEME.colors.dataEngineering.compute, THEME.colors.dataEngineering.stream, THEME.colors.dataEngineering.ingestion, THEME.colors.dataEngineering.orchestration];
         case DiagramType.CLOUD_ARCH: return [THEME.colors.cloud.compute, THEME.colors.cloud.network, THEME.colors.cloud.storage, THEME.colors.cloud.security, THEME.colors.cloud.database];
-        case DiagramType.AI_ML: return [THEME.colors.ai.model, THEME.colors.ai.data, THEME.colors.ai.output, THEME.colors.ai.infrastructure];
+
         case DiagramType.SECURITY: return [THEME.colors.security.policy, THEME.colors.security.firewall, THEME.colors.security.asset, THEME.colors.security.user];
         case DiagramType.BACKEND_DESIGN: return ['#94a3b8'];
         default: return [THEME.colors.standard.client, THEME.colors.standard.database, THEME.colors.standard.cloud, THEME.colors.standard.queue, THEME.colors.standard.ai];
@@ -29,11 +29,11 @@ export const useFlowController = (
     // --- STATE INITIALIZATION WITH PERSISTENCE ---
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    
+
     const [selectedNode, setSelectedNode] = useState<Node<NodeData> | null>(null);
     const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR'>('LR');
     const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
-    
+
     // Global State Trackers
     const [globalAnimated, setGlobalAnimated] = useState(true);
     const [globalEdgeType, setGlobalEdgeType] = useState('default');
@@ -106,7 +106,7 @@ export const useFlowController = (
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
-                    
+
                     // PRE-PROCESS NODES TO FIX GROUPS & SYNC STATE
                     let hasGroups = false;
                     let anyTransparent = false;
@@ -121,7 +121,7 @@ export const useFlowController = (
                             // CRITICAL: Capture original dimensions from import so we don't shrink later
                             const w = n.style?.width || n.width;
                             const h = n.style?.height || n.height;
-                            
+
                             return {
                                 ...n,
                                 data: {
@@ -145,7 +145,7 @@ export const useFlowController = (
 
                     setNodes(processedNodes);
                     setEdges(flowData.edges);
-                    
+
                     if (flowData.viewport && rfInstance) {
                         rfInstance.setViewport(flowData.viewport);
                     }
@@ -158,7 +158,7 @@ export const useFlowController = (
                         setAreGroupsTransparent(false);
                         setAreGroupsExpanded(true);
                     }
-                    
+
                     addToast("Import", "Diagram imported successfully.", "success");
                 } else {
                     addToast("Error", "Invalid JSON format.", "error");
@@ -176,10 +176,10 @@ export const useFlowController = (
         takeSnapshot(nodes, edges);
         const palette = getThemePalette(currentDiagramType);
         const color = palette[Math.floor(Math.random() * palette.length)];
-        
-        setEdges((eds) => addEdge({ 
-            ...params, 
-            type: 'custom', 
+
+        setEdges((eds) => addEdge({
+            ...params,
+            type: 'custom',
             animated: globalAnimated,
             data: { color, diagramType: currentDiagramType, pathType: globalEdgeType },
             style: { stroke: color, strokeWidth: 2 },
@@ -205,7 +205,7 @@ export const useFlowController = (
         const types = ['default', 'smoothstep', 'step', 'straight', 'bezier'];
         const currentIndex = types.indexOf(globalEdgeType);
         const nextType = types[(currentIndex + 1) % types.length];
-        
+
         setGlobalEdgeType(nextType);
         setEdges((eds) => eds.map(e => ({
             ...e,
@@ -217,16 +217,16 @@ export const useFlowController = (
     const toggleAllGroups = useCallback(() => {
         const newState = !areGroupsExpanded; // True = Expanding, False = Collapsing (from UI perspective)
         setAreGroupsExpanded(newState);
-        
+
         setNodes((nds) => {
             const groupIds = nds.filter(n => n.type === 'group').map(n => n.id);
-            
+
             return nds.map(node => {
                 // Handle Children visibility
                 if (node.parentNode && groupIds.includes(node.parentNode)) {
                     return { ...node, hidden: !newState };
                 }
-                
+
                 // Handle Group Nodes
                 if (node.type === 'group') {
                     const currentStyle = node.style || {};
@@ -236,35 +236,35 @@ export const useFlowController = (
                     // If we are about to COLLAPSE (newState = false), save current dimensions
                     // Only save if we are currently expanded (not collapsed)
                     if (!newState && !node.data.collapsed) {
-                         const w = currentStyle.width || node.width;
-                         const h = currentStyle.height || node.height;
-                         // Validation to prevent saving 0 or small values
-                         if (w && Number(w) > 200) expandedW = Number(w);
-                         if (h && Number(h) > 100) expandedH = Number(h);
+                        const w = currentStyle.width || node.width;
+                        const h = currentStyle.height || node.height;
+                        // Validation to prevent saving 0 or small values
+                        if (w && Number(w) > 200) expandedW = Number(w);
+                        if (h && Number(h) > 100) expandedH = Number(h);
                     }
 
                     // Fallbacks for restoration
                     const finalW = expandedW || 400;
                     const finalH = expandedH || 400;
 
-                    return { 
-                        ...node, 
-                        data: { 
-                            ...node.data, 
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
                             collapsed: !newState,
                             expandedWidth: finalW,
                             expandedHeight: finalH
                         },
                         // If newState is TRUE (Expand), restore dimensions. If FALSE (Collapse), shrink.
-                        style: !newState 
-                            ? { ...currentStyle, width: 200, height: 60 } 
+                        style: !newState
+                            ? { ...currentStyle, width: 200, height: 60 }
                             : { ...currentStyle, width: finalW, height: finalH }
                     };
                 }
                 return node;
             });
         });
-        
+
         setTimeout(() => handleFitView(), 300); // Re-fit after size changes
         addToast("Groups", newState ? "All Groups Expanded" : "All Groups Collapsed", "info");
     }, [areGroupsExpanded, setNodes, handleFitView, addToast]);
@@ -272,7 +272,7 @@ export const useFlowController = (
     const toggleGroupTransparency = useCallback(() => {
         const newState = !areGroupsTransparent;
         setAreGroupsTransparent(newState);
-        
+
         setNodes((nds) => nds.map(n => {
             if (n.type === 'group') {
                 return { ...n, data: { ...n.data, isTransparent: newState } };
@@ -324,6 +324,36 @@ export const useFlowController = (
         addToast("Deleted", "Node removed.", "info");
     }, [nodes, edges, takeSnapshot, setNodes, setEdges, addToast]);
 
+    const handleAddNode = useCallback(() => {
+        takeSnapshot(nodes, edges);
+
+        // Find a safe position in the center
+        let newX = 200;
+        let newY = 200;
+        if (rfInstance) {
+            const viewport = rfInstance.getViewport();
+            // Center of screen relative to viewport
+            newX = (-viewport.x + (window.innerWidth / 2)) / viewport.zoom;
+            newY = (-viewport.y + (window.innerHeight / 2)) / viewport.zoom;
+        }
+
+        const newNode: Node = {
+            id: `node-${Date.now()}`,
+            type: 'custom',
+            position: { x: newX, y: newY },
+            data: {
+                label: 'New Component',
+                variant: 'service',
+                technology: '',
+                diagramType: currentDiagramType
+            }
+        };
+
+        setNodes((nds) => [...nds, newNode]);
+        addToast("Added", "New component added.", "success");
+        setTimeout(() => focusOnNode(newNode.id), 100);
+    }, [nodes, edges, takeSnapshot, setNodes, currentDiagramType, rfInstance, addToast]);
+
     const focusOnNode = useCallback((nodeId: string) => {
         if (!rfInstance) return;
         const target = nodes.find(n => n.id === nodeId);
@@ -331,9 +361,9 @@ export const useFlowController = (
             const x = target.position.x + (THEME.dimensions.nodeWidth / 2);
             const y = target.position.y + (THEME.dimensions.nodeHeight / 2);
             let absX = x, absY = y;
-            if(target.parentNode) {
+            if (target.parentNode) {
                 const p = nodes.find(n => n.id === target.parentNode);
-                if(p) { absX += p.position.x; absY += p.position.y; }
+                if (p) { absX += p.position.x; absY += p.position.y; }
             }
             rfInstance.setCenter(absX, absY, { zoom: 1.5, duration: 800 });
             setSelectedNode(target as Node<NodeData>);
@@ -347,9 +377,9 @@ export const useFlowController = (
         layoutDirection, setLayoutDirection,
         currentDiagramType, setCurrentDiagramType,
         rfInstance, setRfInstance,
-        
+
         // Expose State
-        globalAnimated, 
+        globalAnimated,
         areGroupsExpanded,
         areGroupsTransparent,
 
@@ -359,11 +389,12 @@ export const useFlowController = (
         onForceLayout,
         handleReset,
         handleFitView,
-        handleImport, 
+        handleImport,
         handleUpdateNode,
         handleDeleteNode,
+        handleAddNode,
         focusOnNode,
-        
+
         // New Toolbar Actions
         toggleEdgeAnimation,
         cycleEdgeType,

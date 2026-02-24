@@ -83,6 +83,7 @@ interface SidebarProps {
     onShowHistory: () => void;
     selectedNode: Node<NodeData> | null;
     currentViewMode: ViewMode;
+    onAddNode: () => void;
     hasData: boolean;
     canUndo: boolean;
     canRedo: boolean;
@@ -107,6 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     onShowHistory,
     selectedNode,
     currentViewMode,
+    onAddNode,
     hasData,
     canUndo,
     canRedo,
@@ -461,13 +463,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                         </div>
                     )}
 
-                    {/* 1. View Mode (Contextual) */}
                     {hasData && (
                         <div className="bg-slate-800/50 p-2 rounded-lg border border-slate-700/50">
                             <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
                                 <Eye className="w-3 h-3" /> View Perspective
                             </label>
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 mb-4">
                                 {Object.values(ViewMode).map(mode => (
                                     <button
                                         key={mode}
@@ -483,6 +484,18 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     </button>
                                 ))}
                             </div>
+
+                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                <Plus className="w-3 h-3" /> Manual Architecting
+                            </label>
+                            <button
+                                onClick={onAddNode}
+                                disabled={isReadOnly}
+                                className={`w-full py-2.5 rounded-md border flex items-center justify-center gap-2 text-sm font-bold transition-all shadow-lg ${isReadOnly ? 'border-indigo-900/50 bg-indigo-900/20 text-indigo-500/50 cursor-not-allowed' : 'border-indigo-500 bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-[1.02]'}`}
+                                title="Add a new component to the canvas"
+                            >
+                                <Plus className="w-4 h-4" /> Add Component
+                            </button>
                         </div>
                     )}
 

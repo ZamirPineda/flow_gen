@@ -46,7 +46,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onQuickStart }) => {
                 </h1>
 
                 <p className="text-slate-400 text-center text-lg max-w-lg mb-10 leading-relaxed">
-                    Start designing your architecture by selecting a workspace type below.
+                    Start drafting your system manually. Select a blank workspace to begin.
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
