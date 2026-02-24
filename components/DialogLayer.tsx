@@ -1,15 +1,14 @@
 
 import React from 'react';
 import CodeViewer from './CodeViewer';
-import AIResponseViewer from './AIResponseViewer';
 import HistoryViewer from './HistoryViewer';
 import AuditPanel from './AuditPanel';
 import CostSummary from './CostSummary';
 import CodeImportModal from './CodeImportModal';
-import ChatInterface from './ChatInterface';
+
 import LoadingOverlay from './LoadingOverlay';
 import { ToastContainer } from './Toast';
-import { HistoryItem, AuditIssue, ChatMessage, CodeLanguage, ToastMessage } from '../types';
+import { HistoryItem, AuditIssue, CodeLanguage, ToastMessage } from '../types';
 
 interface DialogLayerProps {
     // Audit
@@ -24,28 +23,19 @@ interface DialogLayerProps {
     totalCost: number;
     onCloseCost: () => void;
 
-    // Chat
-    showChat: boolean;
-    chatMessages: ChatMessage[];
-    onSendMessage: (text: string) => Promise<void>;
-    onCloseChat: () => void;
-    onResetHighlights: () => void;
-    isChatProcessing: boolean;
+    // Diff Mode
 
     // Code
     showCodeViewer: boolean;
     generatedCode: string;
     codeLanguage: string;
     onCloseCodeViewer: () => void;
-    
+
     // Code Import
     showCodeImportModal: boolean;
     onCloseCodeImport: () => void;
     onImportCode: (code: string) => Promise<void>;
 
-    // AI Response / Rationale
-    aiResponse: { title: string; content: string } | null;
-    onCloseAIResponse: () => void;
 
     // History
     showHistory: boolean;
@@ -70,10 +60,9 @@ interface DialogLayerProps {
 export const DialogLayer: React.FC<DialogLayerProps> = ({
     showAuditPanel, auditIssues, onCloseAudit, onFocusNode,
     showCostSummary, costBreakdown, totalCost, onCloseCost,
-    showChat, chatMessages, onSendMessage, onCloseChat, onResetHighlights, isChatProcessing,
     showCodeViewer, generatedCode, codeLanguage, onCloseCodeViewer,
     showCodeImportModal, onCloseCodeImport, onImportCode,
-    aiResponse, onCloseAIResponse,
+
     showHistory, history, onCloseHistory, onSelectHistory, onClearHistory, onDeleteHistory, onCompareHistory,
     isDiffMode, onExitDiff,
     isGenerating, loadingMessage, toasts, removeToast
@@ -83,45 +72,31 @@ export const DialogLayer: React.FC<DialogLayerProps> = ({
             {/* PANELS */}
             {showAuditPanel && <AuditPanel issues={auditIssues} onClose={onCloseAudit} onFocusNode={onFocusNode} />}
             {showCostSummary && <CostSummary breakdown={costBreakdown} total={totalCost} onClose={onCloseCost} />}
-            
-            {showChat && (
-                <ChatInterface 
-                    messages={chatMessages} 
-                    onSendMessage={onSendMessage} 
-                    onClose={onCloseChat} 
-                    onResetHighlights={onResetHighlights}
-                    isProcessing={isChatProcessing}
-                />
-            )}
+
+
 
             {/* MODALS */}
             {showCodeViewer && (
-                <CodeViewer 
-                    code={generatedCode} 
-                    language={codeLanguage} 
-                    onClose={onCloseCodeViewer} 
+                <CodeViewer
+                    code={generatedCode}
+                    language={codeLanguage}
+                    onClose={onCloseCodeViewer}
                 />
             )}
 
-            {aiResponse && (
-                <AIResponseViewer 
-                    title={aiResponse.title} 
-                    content={aiResponse.content} 
-                    onClose={onCloseAIResponse} 
-                />
-            )}
-            
+
+
             {showHistory && (
-                <HistoryViewer 
-                    history={history} 
-                    onClose={onCloseHistory} 
+                <HistoryViewer
+                    history={history}
+                    onClose={onCloseHistory}
                     onSelect={onSelectHistory}
                     onClear={onClearHistory}
                     onDelete={onDeleteHistory}
                     onCompare={onCompareHistory}
                 />
             )}
-            
+
             {showCodeImportModal && (
                 <CodeImportModal
                     onClose={onCloseCodeImport}
