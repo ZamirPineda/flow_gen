@@ -219,6 +219,7 @@ const App = () => {
                     onConnect={flow.onConnect}
                     onNodeClick={(e, n) => { setMenuData(null); flow.setSelectedNode(n); }}
                     onNodeDragStart={flow.onNodeDragStart}
+                    onNodeDragStop={flow.onNodeDragStop}
                     onNodeContextMenu={handleNodeContextMenu}
                     onInit={flow.setRfInstance}
                     fitView className="bg-transparent relative z-10" minZoom={0.05} maxZoom={3}

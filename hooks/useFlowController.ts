@@ -94,6 +94,73 @@ export const useFlowController = (
         takeSnapshot(nodes, edges);
     }, [nodes, edges, takeSnapshot]);
 
+    const onNodeDragStop = useCallback((e: React.MouseEvent, node: Node) => {
+        // Prevent groups from being grouped inside other groups for simplicity
+        if (node.type === 'group' || node.type === 'defs' || node.type === 'title') return;
+
+        setNodes((nds) => {
+            // Find expanded groups that could potential be a target
+            const groupNodes = nds.filter(n => n.type === 'group' && n.id !== node.id && !n.data.collapsed);
+            let nextParentId: string | undefined = undefined;
+
+            for (const group of groupNodes) {
+                // Calculate node center. Default width/height used if none available
+                const nodeCenterX = node.position.x + 100; // ~half width
+                const nodeCenterY = node.position.y + 100; // ~half height
+
+                const groupW = group.style?.width || Number(group.data.expandedWidth) || 400;
+                const groupH = group.style?.height || Number(group.data.expandedHeight) || 400;
+
+                const groupX = group.position.x;
+                const groupY = group.position.y;
+
+                if (
+                    nodeCenterX > groupX &&
+                    nodeCenterX < groupX + Number(groupW) &&
+                    nodeCenterY > groupY &&
+                    nodeCenterY < groupY + Number(groupH)
+                ) {
+                    nextParentId = group.id;
+                    break;
+                }
+            }
+
+            return nds.map((n) => {
+                if (n.id === node.id) {
+                    if (nextParentId && n.parentNode !== nextParentId) {
+                        const parent = nds.find(p => p.id === nextParentId);
+                        if (parent) {
+                            return {
+                                ...n,
+                                parentNode: nextParentId,
+                                // Convert to relative coordinates inside the group
+                                position: {
+                                    x: node.position.x - parent.position.x,
+                                    y: node.position.y - parent.position.y
+                                }
+                            };
+                        }
+                    } else if (!nextParentId && n.parentNode) {
+                        // Dragged out of a group
+                        const parent = nds.find(p => p.id === n.parentNode);
+                        if (parent) {
+                            return {
+                                ...n,
+                                parentNode: undefined,
+                                // Convert back to absolute coordinates
+                                position: {
+                                    x: node.position.x + parent.position.x,
+                                    y: node.position.y + parent.position.y
+                                }
+                            };
+                        }
+                    }
+                }
+                return n;
+            });
+        });
+    }, [setNodes]);
+
     const handleImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
@@ -427,7 +494,7 @@ export const useFlowController = (
     }, [rfInstance, nodes]);
 
     return {
-        nodes, setNodes, onNodesChange, onNodeDragStart,
+        nodes, setNodes, onNodesChange, onNodeDragStart, onNodeDragStop,
         edges, setEdges, onEdgesChange,
         selectedNode, setSelectedNode,
         layoutDirection, setLayoutDirection,
