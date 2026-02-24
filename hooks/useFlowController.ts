@@ -354,6 +354,62 @@ export const useFlowController = (
         setTimeout(() => focusOnNode(newNode.id), 100);
     }, [nodes, edges, takeSnapshot, setNodes, currentDiagramType, rfInstance, addToast]);
 
+    const handleAddGroup = useCallback(() => {
+        takeSnapshot(nodes, edges);
+
+        // Find a safe position in the center
+        let newX = 200;
+        let newY = 200;
+        if (rfInstance) {
+            const viewport = rfInstance.getViewport();
+            newX = (-viewport.x + (window.innerWidth / 2)) / viewport.zoom - 200; // Offset by half width
+            newY = (-viewport.y + (window.innerHeight / 2)) / viewport.zoom - 200; // Offset by half height
+        }
+
+        const newGroup: Node = {
+            id: `group-${Date.now()}`,
+            type: 'group',
+            position: { x: newX, y: newY },
+            style: { width: 400, height: 400 },
+            data: {
+                label: 'New Group',
+                isTransparent: areGroupsTransparent,
+                collapsed: !areGroupsExpanded,
+                expandedWidth: 400,
+                expandedHeight: 400
+            }
+        };
+
+        setNodes((nds) => [...nds, newGroup]);
+        addToast("Added", "New group added.", "success");
+        setTimeout(() => focusOnNode(newGroup.id), 100);
+    }, [nodes, edges, takeSnapshot, setNodes, rfInstance, addToast, areGroupsTransparent, areGroupsExpanded]);
+
+    const handleAddTextNode = useCallback(() => {
+        takeSnapshot(nodes, edges);
+
+        let newX = 200;
+        let newY = 200;
+        if (rfInstance) {
+            const viewport = rfInstance.getViewport();
+            newX = (-viewport.x + (window.innerWidth / 2)) / viewport.zoom;
+            newY = (-viewport.y + (window.innerHeight / 2)) / viewport.zoom;
+        }
+
+        const newText: Node = {
+            id: `text-${Date.now()}`,
+            type: 'title', // Uses the existing 'title' node type for generic text
+            position: { x: newX, y: newY },
+            data: {
+                label: 'New Text Note',
+            }
+        };
+
+        setNodes((nds) => [...nds, newText]);
+        addToast("Added", "Text note added.", "success");
+        setTimeout(() => focusOnNode(newText.id), 100);
+    }, [nodes, edges, takeSnapshot, setNodes, rfInstance, addToast]);
+
     const focusOnNode = useCallback((nodeId: string) => {
         if (!rfInstance) return;
         const target = nodes.find(n => n.id === nodeId);
@@ -393,6 +449,8 @@ export const useFlowController = (
         handleUpdateNode,
         handleDeleteNode,
         handleAddNode,
+        handleAddGroup,
+        handleAddTextNode,
         focusOnNode,
 
         // New Toolbar Actions

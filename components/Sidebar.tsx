@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Database, Loader2, Upload, Trash2, RefreshCw, Settings2, ArrowDown, ArrowRight, Zap, Server, Radio, Layers, Cloud, Code2, Container, Workflow, Eye, Table2, Shapes, GitFork, BrainCircuit, ShieldCheck, Edit3, X, Save, Box, Lock, Type, ImagePlus, Camera, Activity, History, Mic, MicOff, LayoutTemplate, Grid, Command, ShieldAlert, FileCode, PanelLeftClose, PanelLeftOpen, Plus, Battery, BatteryCharging, PenTool, DollarSign, Globe, Clock, RotateCcw } from 'lucide-react';
+import { Sparkles, Database, Loader2, Upload, Trash2, RefreshCw, Settings2, ArrowDown, ArrowRight, Zap, Server, Radio, Layers, Cloud, Code2, Container, Workflow, Eye, Table2, Shapes, GitFork, BrainCircuit, ShieldCheck, Edit3, X, Save, Box, Lock, Type, ImagePlus, Camera, Activity, History, Mic, MicOff, LayoutTemplate, Grid, Command, ShieldAlert, FileCode, PanelLeftClose, PanelLeftOpen, Plus, Battery, BatteryCharging, PenTool, DollarSign, Globe, Clock, RotateCcw, FolderOpen, MessageSquare, Route } from 'lucide-react';
 import { DiagramType, ViewMode, NodeData } from '../types';
 import { Node } from 'reactflow';
 import { getTechIcon } from './TechIcons';
@@ -84,6 +84,11 @@ interface SidebarProps {
     selectedNode: Node<NodeData> | null;
     currentViewMode: ViewMode;
     onAddNode: () => void;
+    onAddGroup?: () => void;
+    onAddTextNode?: () => void;
+    onCycleEdgeType?: () => void;
+    onToggleAnimation?: () => void;
+    globalAnimated?: boolean;
     hasData: boolean;
     canUndo: boolean;
     canRedo: boolean;
@@ -109,6 +114,11 @@ const Sidebar: React.FC<SidebarProps> = ({
     selectedNode,
     currentViewMode,
     onAddNode,
+    onAddGroup,
+    onAddTextNode,
+    onCycleEdgeType,
+    onToggleAnimation,
+    globalAnimated,
     hasData,
     canUndo,
     canRedo,
@@ -487,18 +497,68 @@ const Sidebar: React.FC<SidebarProps> = ({
                         </div>
                     )}
 
-                    <div className="bg-slate-800/50 p-2 rounded-lg border border-slate-700/50">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
-                            <Plus className="w-3 h-3" /> Manual Architecting
-                        </label>
-                        <button
-                            onClick={onAddNode}
-                            disabled={isReadOnly}
-                            className={`w-full py-2.5 rounded-md border flex items-center justify-center gap-2 text-sm font-bold transition-all shadow-lg ${isReadOnly ? 'border-indigo-900/50 bg-indigo-900/20 text-indigo-500/50 cursor-not-allowed' : 'border-indigo-500 bg-indigo-600 text-white hover:bg-indigo-500 hover:scale-[1.02]'}`}
-                            title="Add a new component to the canvas"
-                        >
-                            <Plus className="w-4 h-4" /> Add Component
-                        </button>
+                    <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700/50 space-y-4">
+                        <div>
+                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                <Plus className="w-3 h-3" /> Add Components
+                            </label>
+                            <div className="grid grid-cols-1 gap-2">
+                                <button
+                                    onClick={onAddNode}
+                                    disabled={isReadOnly}
+                                    className={`w-full py-2 rounded-md border flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-md ${isReadOnly ? 'border-indigo-900/50 bg-indigo-900/20 text-indigo-500/50 cursor-not-allowed' : 'border-indigo-500 bg-indigo-600 text-white hover:bg-indigo-500'}`}
+                                >
+                                    <Box className="w-3.5 h-3.5" /> Shape
+                                </button>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        onClick={onAddGroup}
+                                        disabled={isReadOnly}
+                                        className={`w-full py-1.5 rounded-md border flex items-center justify-center gap-1 text-[11px] font-semibold transition-all shadow-sm ${isReadOnly ? 'border-slate-800 text-slate-600 cursor-not-allowed' : 'border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600'}`}
+                                    >
+                                        <FolderOpen className="w-3 h-3" /> Group
+                                    </button>
+                                    <button
+                                        onClick={onAddTextNode}
+                                        disabled={isReadOnly}
+                                        className={`w-full py-1.5 rounded-md border flex items-center justify-center gap-1 text-[11px] font-semibold transition-all shadow-sm ${isReadOnly ? 'border-slate-800 text-slate-600 cursor-not-allowed' : 'border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600'}`}
+                                    >
+                                        <MessageSquare className="w-3 h-3" /> Text
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-slate-700/50">
+                            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                <Route className="w-3 h-3" /> Connections & Lines
+                            </label>
+                            <p className="text-[10px] text-slate-500 mb-2 leading-tight">
+                                To connect shapes, drag from the white dots on the edges of any component.
+                            </p>
+                            <div className="grid grid-cols-2 gap-2">
+                                {onCycleEdgeType && (
+                                    <button
+                                        onClick={onCycleEdgeType}
+                                        disabled={isReadOnly}
+                                        className="py-1.5 rounded-md border border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600 flex items-center justify-center gap-1 text-[11px] font-semibold transition-all"
+                                        title="Change Line Style (Straight, Curve, Step)"
+                                    >
+                                        <Route className="w-3 h-3" /> Style
+                                    </button>
+                                )}
+                                {onToggleAnimation && (
+                                    <button
+                                        onClick={onToggleAnimation}
+                                        disabled={isReadOnly}
+                                        className={`py-1.5 rounded-md border flex items-center justify-center gap-1 text-[11px] font-semibold transition-all ${globalAnimated ? 'border-indigo-500 bg-indigo-600/20 text-indigo-300' : 'border-slate-600 bg-slate-700 text-slate-400 hover:bg-slate-600'}`}
+                                        title="Toggle Flow Animation"
+                                    >
+                                        <Activity className="w-3 h-3" /> Flow
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="mt-4 flex gap-2 justify-center">

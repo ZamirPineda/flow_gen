@@ -158,6 +158,11 @@ const App = () => {
                 selectedNode={flow.selectedNode}
                 currentViewMode={viewMode}
                 onAddNode={flow.handleAddNode}
+                onAddGroup={flow.handleAddGroup}
+                onAddTextNode={flow.handleAddTextNode}
+                onCycleEdgeType={flow.cycleEdgeType}
+                onToggleAnimation={flow.toggleEdgeAnimation}
+                globalAnimated={flow.globalAnimated}
                 hasData={!isCanvasEmpty}
                 canUndo={canUndo} canRedo={canRedo} onUndo={handleUndo} onRedo={handleRedo}
                 isReadOnly={isReadOnly}
