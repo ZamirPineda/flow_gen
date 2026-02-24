@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FlowGen Architect - Isometric Architecture</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "reactflow/": "https://aistudiocdn.com/reactflow@^11.11.4/",
+    "reactflow": "https://aistudiocdn.com/reactflow@^11.11.4",
+    "dagre": "https://aistudiocdn.com/dagre@^0.8.5",
+    "html-to-image": "https://esm.sh/html-to-image@1.11.11",
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "lodash": "https://aistudiocdn.com/lodash@^4.17.21"
+  }
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap');
+      /* SKETCH MODE FONT */
+      @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
+      /* 
+         LAYER 1: REACT FLOW DEFAULTS 
+         (Moved to top so custom styles override them)
+      */
+      .react-flow{direction:ltr;width:100%;height:100%;position:relative}.react-flow__container{position:absolute;width:100%;height:100%;top:0;left:0}.react-flow__pane{z-index:1;cursor:-webkit-grab;cursor:grab}.react-flow__pane.dragging{cursor:-webkit-grabbing;cursor:grabbing}.react-flow__viewport{transform-origin:0 0;z-index:2;pointer-events:none}.react-flow__renderer{z-index:4}.react-flow__selection{z-index:6}.react-flow__nodesselection-rect:focus,.react-flow__nodesselection-rect:focus-visible{outline:none}.react-flow .react-flow__edges{pointer-events:none;overflow:visible}.react-flow__edge{pointer-events:all;cursor:pointer}.react-flow__edge.animated path{stroke-dasharray:5;animation:dashdraw .5s linear infinite}.react-flow__edge.animated path.react-flow__edge-interaction{stroke-dasharray:none;animation:none}.react-flow__edge.inactive{pointer-events:none}.react-flow__edge.selected,.react-flow__edge:focus,.react-flow__edge:focus-visible{outline:none}.react-flow__edge-path,.react-flow__connection-path{fill:none}.react-flow__edge-textwrapper{pointer-events:all}.react-flow__edge-textbg{fill:#fff}.react-flow__edge-text{font-size:10px}.react-flow__connection{pointer-events:none}.react-flow__connection .animated{stroke-dasharray:5;animation:dashdraw .5s linear infinite}.react-flow__nodes{pointer-events:none;transform-origin:0 0}.react-flow__node{position:absolute;user-select:none;pointer-events:all;transform-origin:0 0;box-sizing:border-box;cursor:-webkit-grab;cursor:grab}.react-flow__node.dragging{cursor:-webkit-grabbing;cursor:grabbing}.react-flow__nodesselection{z-index:3;transform-origin:0 0;pointer-events:none}.react-flow__nodesselection-rect{position:absolute;pointer-events:all;cursor:-webkit-grab;cursor:grab}.react-flow__handle{position:absolute;pointer-events:none;min-width:5px;min-height:5px;width:6px;height:6px;background:#1a192b;border:1px solid #fff;border-radius:100%}.react-flow__handle.connectionindicator{pointer-events:all;cursor:crosshair}.react-flow__handle-bottom{top:auto;left:50%;bottom:-4px;transform:translate(-50%,0)}.react-flow__handle-top{left:50%;top:-4px;transform:translate(-50%,0)}.react-flow__handle-left{top:50%;left:-4px;transform:translate(0,-50%)}.react-flow__handle-right{right:-4px;top:50%;transform:translate(0,-50%)}.react-flow__edgeupdater{cursor:move;pointer-events:all}.react-flow__panel{position:absolute;z-index:5;margin:15px}.react-flow__panel.top{top:0}.react-flow__panel.bottom{bottom:0}.react-flow__panel.left{left:0}.react-flow__panel.right{right:0}.react-flow__panel.center{left:50%;transform:translateX(-50%)}.react-flow__attribution{font-size:10px;background:#ffffff80;padding:2px 3px;margin:0}.react-flow__controls{display:flex;flex-direction:column;box-shadow:0 0 2px 1px #00000014;background:#fefefe;padding-bottom:1px}.react-flow__controls-button{border:none;background:#fefefe;border-bottom:1px solid #eee;box-sizing:content-box;display:flex;justify-content:center;align-items:center;width:26px;height:26px;cursor:pointer;user-select:none;padding:0}.react-flow__controls-button:hover{background:#f4f4f4}.react-flow__controls-button svg{width:100%;max-width:12px;max-height:12px;fill:currentColor}.react-flow__minimap{background:#fff}.react-flow__resize-control{position:absolute}.react-flow__resize-control.left,.react-flow__resize-control.right{cursor:ew-resize}.react-flow__resize-control.top,.react-flow__resize-control.bottom{cursor:ns-resize}.react-flow__resize-control.top.left,.react-flow__resize-control.bottom.right{cursor:nwse-resize}.react-flow__resize-control.bottom.left,.react-flow__resize-control.top.right{cursor:nesw-resize}.react-flow__resize-control.handle{width:4px;height:4px;border:1px solid #fff;border-radius:1px;background-color:#3367d9;transform:translate(-50%,-50%)}.react-flow__resize-control.line{border-color:#3367d9;border-width:0;border-style:solid}@keyframes dashdraw{from{stroke-dashoffset:10}to{stroke-dashoffset:0}}
+
+      /* 
+         LAYER 2: CUSTOM APP OVERRIDES 
+      */
+      
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #0f172a; 
+      }
+
+      /* STACKING CONTEXT ENFORCEMENT - CRITICAL FOR TEXT VISIBILITY */
+      .react-flow__nodes {
+        z-index: 10 !important;
+      }
+      .react-flow__edges {
+        z-index: 0 !important;
+      }
+
+      /* Edge Styling */
+      .react-flow__edge-path {
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      
+      /* Data Flow Animation */
+      .react-flow__edge.animated path {
+        stroke-dasharray: 10;
+        animation: flowAnimation 1s linear infinite !important;
+      }
+      
+      @keyframes flowAnimation {
+        from { stroke-dashoffset: 20; }
+        to { stroke-dashoffset: 0; }
+      }
+      
+      /* ISOMETRIC ANIMATIONS - REFINED & STABILIZED */
+      @keyframes iso-float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); } /* Reduced from -12px to -5px for gentler motion */
+      }
+      @keyframes iso-pulse {
+        0%, 100% { opacity: 1; filter: brightness(1.2); }
+        50% { opacity: 0.7; filter: brightness(0.9); } /* Softened range from 0.1->1.0 to 0.7->1.0 */
+      }
+      @keyframes iso-glow {
+        0%, 100% { fill-opacity: 0.9; filter: drop-shadow(0 0 4px rgba(255,255,255,0.7)); }
+        50% { fill-opacity: 0.6; filter: drop-shadow(0 0 8px rgba(255,255,255,0.4)); }
+      }
+      @keyframes iso-breath {
+        0%, 100% { transform: scale(1); filter: brightness(1); }
+        50% { transform: scale(1.03); filter: brightness(1.1); } /* Subtle breath */
+      }
+      
+      /* AUDIT CRITICAL ANIMATION */
+      @keyframes iso-critical-pulse {
+        0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.5)); }
+        50% { transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.8)); }
+      }
+      
+      /* AUDIT WARNING ANIMATION */
+      @keyframes iso-warning-pulse {
+        0%, 100% { filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.5)); }
+        50% { filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.7)); }
+      }
+
+      .iso-floating {
+        animation: iso-float 5s ease-in-out infinite; /* Slowed down slightly */
+      }
+      .iso-pulsing-1 {
+        animation: iso-pulse 1.5s ease-in-out infinite;
+      }
+      .iso-pulsing-2 {
+        animation: iso-pulse 2s ease-in-out infinite;
+        animation-delay: 0.5s;
+      }
+      .iso-glowing {
+        animation: iso-glow 3s ease-in-out infinite;
+      }
+      .iso-breathing {
+         animation: iso-breath 3s ease-in-out infinite;
+         transform-origin: center center;
+         transform-box: fill-box;
+      }
+      
+      .iso-critical {
+          animation: iso-critical-pulse 1.5s ease-in-out infinite !important;
+          z-index: 9999;
+      }
+      
+      .iso-warning {
+          animation: iso-warning-pulse 2s ease-in-out infinite !important;
+          z-index: 9998;
+      }
+
+      /* 
+         LAYER 3: LOW POWER / SKETCH MODE OVERRIDES
+         Overrides for battery saving, performance, and sketch styles
+      */
+      body.low-power-mode {
+        background-color: #0f172a !important; /* Solid background backup for missing ThreeJS */
+      }
+
+      body.low-power-mode * {
+        animation: none !important;
+        transition: none !important;
+      }
+      
+      /* SKETCH MODE OVERRIDES */
+      body.sketch-mode {
+        background-color: #ffffff !important;
+        background-image: 
+            radial-gradient(#cbd5e1 1px, transparent 1px),
+            radial-gradient(#cbd5e1 1px, transparent 1px);
+        background-size: 20px 20px;
+        background-position: 0 0, 10px 10px;
+        color: #1e293b !important;
+        font-family: 'Patrick Hand', cursive !important;
+      }
+      
+      body.sketch-mode .react-flow__node {
+        filter: none !important;
+      }
+
+      /* Disable node hovers and heavy drop shadows */
+      body.low-power-mode .react-flow__node .group {
+        filter: none !important; 
+        transform: none !important;
+      }
+      
+      /* Disable edge filters/glows */
+      body.low-power-mode .react-flow__edge path {
+        filter: none !important;
+        stroke-dasharray: 0 !important; /* Stop flow animation */
+      }
+
+      body.low-power-mode .iso-floating, 
+      body.low-power-mode .iso-pulsing-1, 
+      body.low-power-mode .iso-pulsing-2,
+      body.low-power-mode .iso-glowing,
+      body.low-power-mode .iso-breathing,
+      body.low-power-mode .iso-critical,
+      body.low-power-mode .iso-warning {
+        animation: none !important;
+      }
+
+      /* Scrollbars */
+      ::-webkit-scrollbar { width: 8px; height: 8px; }
+      ::-webkit-scrollbar-track { background: #1e1e24; }
+      ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    </style>
+</head>
+  <body class="bg-[#0f172a] text-slate-50 antialiased overflow-hidden">
+    <div id="root"></div>
+  </body>
+</html>

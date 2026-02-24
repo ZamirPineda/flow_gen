@@ -1,0 +1,5 @@
+{
+  "name": "FlowGen AI - V4",
+  "description": "Generador de diagramas de arquitectura de software impulsado por IA. Describe tu sistema y observa cómo se crea el diagrama de flujo automáticamente.",
+  "requestFramePermissions": []
+}
