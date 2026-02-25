@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Database, Loader2, Upload, Trash2, RefreshCw, Settings2, ArrowDown, ArrowRight, Zap, Server, Radio, Layers, Cloud, Code2, Container, Workflow, Eye, Table2, Shapes, GitFork, BrainCircuit, ShieldCheck, Edit3, X, Save, Box, Lock, Type, ImagePlus, Camera, Activity, History, Mic, MicOff, LayoutTemplate, Grid, Command, ShieldAlert, FileCode, PanelLeftClose, PanelLeftOpen, Plus, Battery, BatteryCharging, PenTool, DollarSign, Globe, Clock, RotateCcw, FolderOpen, MessageSquare, Route } from 'lucide-react';
+import { Sparkles, Database, Loader2, Upload, Trash2, RefreshCw, Settings2, ArrowDown, ArrowRight, Zap, Server, Radio, Layers, Cloud, Code2, Container, Workflow, Eye, EyeOff, Table2, Shapes, GitFork, BrainCircuit, ShieldCheck, Edit3, X, Save, Box, Lock, Type, ImagePlus, Camera, Activity, History, Mic, MicOff, LayoutTemplate, Grid, Command, ShieldAlert, FileCode, PanelLeftClose, PanelLeftOpen, Plus, Battery, BatteryCharging, PenTool, DollarSign, Globe, Clock, RotateCcw, FolderOpen, MessageSquare, Route } from 'lucide-react';
 import { DiagramType, ViewMode, NodeData } from '../types';
 import { Node } from 'reactflow';
 import { getTechIcon } from './TechIcons';
@@ -100,6 +100,8 @@ interface SidebarProps {
     onToggleLowPowerMode: () => void;
     isSketchMode: boolean;
     onToggleSketchMode: () => void;
+    isPreviewMode?: boolean;
+    onTogglePreviewMode?: () => void;
     currentLanguage: string;
     onLanguageChange: (lang: string) => void;
 }
@@ -130,6 +132,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     onToggleLowPowerMode,
     isSketchMode,
     onToggleSketchMode,
+    isPreviewMode,
+    onTogglePreviewMode,
     currentLanguage,
     onLanguageChange
 }) => {
@@ -560,6 +564,23 @@ const Sidebar: React.FC<SidebarProps> = ({
                             </div>
                         </div>
                     </div>
+
+                    {/* PREVIEW MODE TOGGLE */}
+                    {onTogglePreviewMode && (
+                        <div className="mt-2 flex">
+                            <button
+                                onClick={onTogglePreviewMode}
+                                className={`flex-1 py-1.5 rounded-lg border flex items-center justify-center gap-2 text-[11px] font-semibold transition-colors ${isPreviewMode
+                                    ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30 font-bold'
+                                    : 'bg-slate-800/30 text-slate-400 border-slate-700 hover:text-indigo-300 hover:border-indigo-500/30'
+                                    }`}
+                                title={isPreviewMode ? "Edit Mode (Show Handles)" : "Preview Mode (Hide Handles)"}
+                            >
+                                {isPreviewMode ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                                {isPreviewMode ? 'View Mode' : 'Edit Mode'}
+                            </button>
+                        </div>
+                    )}
 
                     <div className="mt-4 flex gap-2 justify-center">
                         {/* LOW POWER TOGGLE */}

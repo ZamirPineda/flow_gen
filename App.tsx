@@ -38,6 +38,7 @@ const App = () => {
     const [showMiniMap, setShowMiniMap] = useState(true);
     const [isLowPowerMode, setIsLowPowerMode] = useState(false);
     const [isSketchMode, setIsSketchMode] = useState(false);
+    const [isPreviewMode, setIsPreviewMode] = useState(false);
     const [menuData, setMenuData] = useState<{ x: number, y: number, nodeId: string } | null>(null);
     const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
@@ -169,6 +170,7 @@ const App = () => {
                 onToast={addToast}
                 isLowPowerMode={isLowPowerMode} onToggleLowPowerMode={() => setIsLowPowerMode(!isLowPowerMode)}
                 isSketchMode={isSketchMode} onToggleSketchMode={() => setIsSketchMode(!isSketchMode)}
+                isPreviewMode={isPreviewMode} onTogglePreviewMode={() => setIsPreviewMode(!isPreviewMode)}
                 currentLanguage={currentLanguage}
                 onLanguageChange={setCurrentLanguage}
             />
@@ -222,7 +224,7 @@ const App = () => {
                     onNodeDragStop={flow.onNodeDragStop}
                     onNodeContextMenu={handleNodeContextMenu}
                     onInit={flow.setRfInstance}
-                    fitView className="bg-transparent relative z-10" minZoom={0.05} maxZoom={3}
+                    fitView className={`bg-transparent relative z-10 ${isPreviewMode ? 'preview-mode' : ''}`} minZoom={0.05} maxZoom={3}
                 >
                     {!presentation.isPresentationMode && (
                         <Controls
