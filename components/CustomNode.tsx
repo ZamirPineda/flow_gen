@@ -589,13 +589,13 @@ const CustomNode = ({ id, data, selected, sourcePosition, targetPosition }: Node
             <Handle
                 type="target"
                 position={targetPosition || Position.Left}
-                className="!w-3 !h-3 !bg-indigo-400 !border-2 !border-slate-800 hover:!bg-indigo-300 hover:!scale-150 transition-transform cursor-crosshair"
+                className="!w-3 !h-3 !bg-indigo-400 !border-2 !border-slate-800 hover:!bg-indigo-300 hover:!scale-150 transition-transform cursor-crosshair z-[1000] !z-[1000]"
                 style={targetStyle}
             />
             <Handle
                 type="source"
                 position={sourcePosition || Position.Right}
-                className="!w-3 !h-3 !bg-emerald-400 !border-2 !border-slate-800 hover:!bg-emerald-300 hover:!scale-150 transition-transform cursor-crosshair"
+                className="!w-3 !h-3 !bg-emerald-400 !border-2 !border-slate-800 hover:!bg-emerald-300 hover:!scale-150 transition-transform cursor-crosshair z-[1000] !z-[1000]"
                 style={sourceStyle}
             />
         </div>
