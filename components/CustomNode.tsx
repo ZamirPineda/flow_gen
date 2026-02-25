@@ -326,8 +326,27 @@ const CustomNode = ({ id, data, selected, sourcePosition, targetPosition }: Node
     // --- DYNAMIC COLORING ---
     const borderColor = getNodeColor(data.diagramType, data.variant, data.label);
 
-    const targetStyle = isHorizontal ? { left: '10%', top: '60%' } : { left: '50%', top: '20%' };
-    const sourceStyle = isHorizontal ? { right: '10%', top: '60%' } : { left: '50%', bottom: '10%' };
+    // --- SMART HANDLE POSITIONING ---
+    // Make handles explicitly hug the 3D Isometric Icon (48px) rather than floating far away
+    let targetStyle: React.CSSProperties;
+    let sourceStyle: React.CSSProperties;
+
+    // Table Variant (Flat strip)
+    if (data.diagramType === DiagramType.BACKEND_DESIGN && data.variant === 'table') {
+        targetStyle = { left: '-4px', top: '50%' };
+        sourceStyle = { right: '-4px', left: 'auto', top: '50%' };
+    } else {
+        const iconOffset = isSketch ? 38 : 30; // Sketch icon is 64px, Isometric is 48px
+        const iconTopY = isSketch ? '32px' : '24px';
+
+        targetStyle = isHorizontal
+            ? { left: `calc(50% - ${iconOffset}px)`, top: iconTopY }
+            : { left: '50%', top: '-6px' };
+
+        sourceStyle = isHorizontal
+            ? { left: `calc(50% + ${iconOffset}px)`, right: 'auto', top: iconTopY }
+            : { left: '50%', top: `calc(${iconTopY} * 2)`, bottom: 'auto' };
+    }
 
     // Tech Icon Overlay
     const specificTechIcon = getTechIcon(data.technology);
