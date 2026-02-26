@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { Node, Edge } from 'reactflow';
+import { safeClone } from '../utils/security';
 
 interface GraphState {
   nodes: Node[];
@@ -19,10 +20,9 @@ export const useUndoRedo = (
   const [future, setFuture] = useState<GraphState[]>([]);
 
   const takeSnapshot = useCallback((nodes: Node[], edges: Edge[]) => {
-    // Deep clone to prevent reference issues
     const snapshot = {
-        nodes: JSON.parse(JSON.stringify(nodes)),
-        edges: JSON.parse(JSON.stringify(edges))
+        nodes: safeClone(nodes),
+        edges: safeClone(edges)
     };
     
     setPast((prev) => [...prev, snapshot]);
@@ -43,8 +43,8 @@ export const useUndoRedo = (
     if (previousState) {
         // Save current state to future before undoing
         const currentSnapshot = {
-            nodes: JSON.parse(JSON.stringify(currentNodes)),
-            edges: JSON.parse(JSON.stringify(currentEdges))
+            nodes: safeClone(currentNodes),
+            edges: safeClone(currentEdges)
         };
         setFuture((prev) => [currentSnapshot, ...prev]);
         
@@ -69,8 +69,8 @@ export const useUndoRedo = (
     if (nextState) {
         // Save current state to past before redoing
         const currentSnapshot = {
-            nodes: JSON.parse(JSON.stringify(currentNodes)),
-            edges: JSON.parse(JSON.stringify(currentEdges))
+            nodes: safeClone(currentNodes),
+            edges: safeClone(currentEdges)
         };
         setPast((prev) => [...prev, currentSnapshot]);
 
