@@ -359,48 +359,48 @@
       }
     }
 
-    /* ISOMETRIC ANIMATIONS - REFINED & STABILIZED */
+    /* ISOMETRIC ANIMATIONS - NEXT GEN FLUID DYNAMICS */
     @keyframes iso-float {
 
       0%,
       100% {
-        transform: translateY(0);
+        transform: translateY(0) rotateZ(0deg) scale(1.0);
       }
 
-      50% {
-        transform: translateY(-5px);
+      33% {
+        transform: translateY(-6px) rotateZ(0.5deg) scale(1.01);
       }
 
-      /* Reduced from -12px to -5px for gentler motion */
+      66% {
+        transform: translateY(-2px) rotateZ(-0.5deg) scale(0.99);
+      }
     }
 
     @keyframes iso-pulse {
 
       0%,
       100% {
-        opacity: 1;
-        filter: brightness(1.2);
+        opacity: 0.8;
+        filter: brightness(1.2) drop-shadow(0 0 4px currentColor) drop-shadow(0 0 10px currentColor);
       }
 
       50% {
-        opacity: 0.7;
-        filter: brightness(0.9);
+        opacity: 1;
+        filter: brightness(1.6) drop-shadow(0 0 8px currentColor) drop-shadow(0 0 20px currentColor);
       }
-
-      /* Softened range from 0.1->1.0 to 0.7->1.0 */
     }
 
     @keyframes iso-glow {
 
       0%,
       100% {
-        fill-opacity: 0.9;
-        filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.7));
+        fill-opacity: 0.8;
+        filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 15px rgba(255, 255, 255, 0.2));
       }
 
       50% {
-        fill-opacity: 0.6;
-        filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+        fill-opacity: 1;
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 25px rgba(255, 255, 255, 0.5));
       }
     }
 
@@ -408,16 +408,14 @@
 
       0%,
       100% {
-        transform: scale(1);
+        transform: scale(1) translateY(0);
         filter: brightness(1);
       }
 
       50% {
-        transform: scale(1.03);
-        filter: brightness(1.1);
+        transform: scale(1.02) translateY(-2px);
+        filter: brightness(1.15);
       }
-
-      /* Subtle breath */
     }
 
     /* AUDIT CRITICAL ANIMATION */
@@ -426,12 +424,12 @@
       0%,
       100% {
         transform: scale(1);
-        filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.5));
+        filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6)) drop-shadow(0 0 20px rgba(239, 68, 68, 0.3));
       }
 
       50% {
-        transform: scale(1.05);
-        filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.8));
+        transform: scale(1.06);
+        filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.9)) drop-shadow(0 0 35px rgba(239, 68, 68, 0.5));
       }
     }
 
@@ -440,34 +438,33 @@
 
       0%,
       100% {
-        filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.5));
+        filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.6));
       }
 
       50% {
-        filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.7));
+        filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.8)) drop-shadow(0 0 25px rgba(245, 158, 11, 0.4));
       }
     }
 
     .iso-floating {
-      animation: iso-float 5s ease-in-out infinite;
-      /* Slowed down slightly */
+      animation: iso-float 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     }
 
     .iso-pulsing-1 {
-      animation: iso-pulse 1.5s ease-in-out infinite;
+      animation: iso-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
 
     .iso-pulsing-2 {
-      animation: iso-pulse 2s ease-in-out infinite;
-      animation-delay: 0.5s;
+      animation: iso-pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      animation-delay: 0.75s;
     }
 
     .iso-glowing {
-      animation: iso-glow 3s ease-in-out infinite;
+      animation: iso-glow 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     }
 
     .iso-breathing {
-      animation: iso-breath 3s ease-in-out infinite;
+      animation: iso-breath 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
       transform-origin: center center;
       transform-box: fill-box;
     }

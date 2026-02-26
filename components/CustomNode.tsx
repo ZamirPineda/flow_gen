@@ -16,8 +16,55 @@ import {
     SketchServer, SketchDB, SketchCloud, SketchUser, SketchQueue, SketchLaptop, SketchFile, SketchAI, SketchLock, SketchGeneric
 } from './SketchIcons';
 import { getTechIcon } from './TechIcons';
-import { Info, AlertTriangle, ShieldAlert, Edit2, PlusCircle, MinusCircle, RefreshCcw, DollarSign } from 'lucide-react';
+import {
+    Info, AlertTriangle, ShieldAlert, Edit2, PlusCircle, MinusCircle, RefreshCcw, DollarSign,
+    Server, Database, Cloud, User, Box, Lock, FileText,
+    Table2, Activity, Smartphone, Monitor, Cpu, Router as RouterIcon,
+    Network, LayoutDashboard, DoorOpen, Shield, Box as BoxIcon,
+    Globe, AlertCircle, Layers, Zap, Hexagon, Share2
+} from 'lucide-react';
 import MarkdownRenderer from './MarkdownRenderer';
+
+// --- FLAT MODE ICONS ---
+const getFlatModeIcon = (variant: string = 'default') => {
+    switch (variant) {
+        case 'service': return Server;
+        case 'container': return Box;
+        case 'database': return Database;
+        case 'cloud': return Cloud;
+        case 'client': return Monitor;
+        case 'queue': return Share2;
+        case 'security': return Lock;
+        case 'ai': return Cpu;
+        case 'file': return FileText;
+        case 'table': return Table2;
+        case 'api': return Globe;
+        case 'function': return Zap;
+        case 'mobile': return Smartphone;
+        case 'browser': return Monitor;
+        case 'iot': return Activity;
+        case 'router': return RouterIcon;
+        case 'load_balancer': return Network;
+        case 'dashboard': return LayoutDashboard;
+        case 'gateway': return DoorOpen;
+        case 'firewall': return Shield;
+        case 'registry': return BoxIcon;
+        case 'cdn': return Globe;
+        case 'dns': return Globe;
+        case 'vpn': return Shield;
+        case 'alert': return AlertCircle;
+        case 'log': return FileText;
+        case 'cluster': return Layers;
+        case 'job': return Zap;
+        case 'lake': return Database;
+        case 'warehouse': return Database;
+        case 'stream': return Activity;
+        case 'machine': return Server;
+        default:
+            if (variant.toLowerCase().includes('user')) return User;
+            return Hexagon;
+    }
+};
 
 // --- COLOR DETERMINATION LOGIC ---
 const getNodeColor = (type: DiagramType | undefined, variant: string = 'default', label: string = ''): string => {
@@ -154,8 +201,10 @@ const CustomNode = ({ id, data, selected, sourcePosition, targetPosition }: Node
     const isRemoved = diffStatus === 'removed';
     const isModified = diffStatus === 'modified';
 
-    // Sketch Mode Flag
+    // Mode Flags
     const isSketch = data.isSketchMode;
+    const isPreview = data.isPreviewMode;
+    const isEditMode = !isPreview && !isSketch;
 
     useEffect(() => {
         if (isEditing && inputRef.current) {
@@ -362,6 +411,130 @@ const CustomNode = ({ id, data, selected, sourcePosition, targetPosition }: Node
         return "";
     };
 
+    const renderNodeToolbar = () => (
+        <NodeToolbar isVisible={selected} position={Position.Top} align="start" offset={20}>
+            <div className="w-72 bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-xl shadow-2xl p-3 text-left animate-in fade-in zoom-in-95 duration-200 origin-bottom-left flex flex-col max-h-64 overflow-hidden z-[9999]">
+                <div className="flex items-center gap-2 mb-2 border-b border-slate-700/50 pb-2 shrink-0">
+                    <Info className="w-3.5 h-3.5 text-indigo-400" />
+                    <span className="text-xs font-bold text-slate-200">Component Info</span>
+                </div>
+
+                <div className="space-y-2 overflow-y-auto pr-1 custom-scrollbar">
+                    <div>
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Label:</span>
+                        <p className="text-sm font-medium text-slate-100">{data.label}</p>
+                    </div>
+
+                    {data.details && (
+                        <div>
+                            <span className="text-[10px] text-slate-500 uppercase font-semibold">Details:</span>
+                            <div className="bg-slate-800/50 p-2 rounded border border-slate-700/30 mt-0.5">
+                                <MarkdownRenderer content={data.details} className="text-[11px] text-slate-300 leading-relaxed" />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex gap-2 pt-1 flex-wrap">
+                        {data.technology && (
+                            <div className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] text-indigo-300">
+                                {data.technology}
+                            </div>
+                        )}
+                        {data.stage && (
+                            <div className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] text-emerald-300">
+                                {data.stage}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Arrow pointer styling */}
+                <div className="absolute -bottom-2 left-4 w-4 h-4 bg-slate-900 border-r border-b border-slate-700 transform rotate-45"></div>
+            </div>
+        </NodeToolbar>
+    );
+
+    // FLAT EDIT MODE RENDER
+    if (isEditMode && data.diagramType !== DiagramType.BACKEND_DESIGN) {
+        const FlatIcon = getFlatModeIcon(data.variant);
+        const diffStyle = getDiffStyles();
+
+        return (
+            <div
+                className={`flex flex-row items-center justify-start gap-2.5 px-3 py-2 border-2 rounded-xl backdrop-blur-md transition-all duration-200 group ${isRemoved ? 'pointer-events-none grayscale opacity-70' : ''} ${selected || isEditing ? 'ring-2 ring-indigo-500 shadow-xl scale-105 bg-slate-800' : 'hover:scale-105 hover:shadow-lg hover:border-indigo-400/80 bg-slate-900/90'} ${diffStyle}`}
+                style={{
+                    width: THEME.dimensions.nodeWidth, // Use same standard node width 160
+                    minHeight: 56,
+                    borderColor: selected || isEditing ? THEME.colors.primary : borderColor,
+                    zIndex: isHovered || selected || isEditing ? 999 : 10,
+                    boxShadow: selected || isEditing ? `0 0 20px ${borderColor}66` : `0 4px 6px -1px rgba(0, 0, 0, 0.5)`
+                }}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onDoubleClick={handleDoubleClick}
+            >
+                {renderNodeToolbar()}
+
+                {/* Visual Diff Badges */}
+                {isAdded && <PlusCircle className="absolute -top-2 -left-2 w-5 h-5 text-emerald-400 bg-slate-900 rounded-full z-20" fill="currentColor" />}
+                {isRemoved && <MinusCircle className="absolute -top-2 -right-2 w-5 h-5 text-red-500 bg-slate-900 rounded-full z-20" fill="currentColor" />}
+                {isModified && <RefreshCcw className="absolute -top-2 -left-2 w-4 h-4 text-amber-400 bg-slate-900 rounded-full p-0.5 border border-amber-500 z-20" />}
+
+                {/* Left side: Icon */}
+                <div className="flex-shrink-0 p-1.5 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${borderColor}30`, color: borderColor }}>
+                    <FlatIcon size={20} strokeWidth={2.5} />
+                </div>
+
+                {/* Right side: Label & Tech */}
+                <div className="flex flex-col flex-1 min-w-0 overflow-hidden text-left justify-center">
+                    {data.technology && specificTechIcon && (
+                        <div className="flex items-center gap-1 min-w-0 mb-0.5 opacity-80" title={data.technology}>
+                            <span className="scale-[0.6] origin-left inline-flex shrink-0 -my-1">{specificTechIcon}</span>
+                            <span className="text-[9px] text-slate-300 font-bold uppercase tracking-widest truncate leading-none mt-0.5">{data.technology}</span>
+                        </div>
+                    )}
+                    {isEditing ? (
+                        <input
+                            ref={inputRef}
+                            value={editLabel}
+                            onChange={(e) => setEditLabel(e.target.value)}
+                            onBlur={handleEditSubmit}
+                            onKeyDown={handleKeyDown}
+                            className="w-full bg-slate-950/70 text-slate-100 text-xs font-bold border-b-2 border-indigo-500 outline-none px-1 rounded-sm"
+                        />
+                    ) : (
+                        <div className={`text-xs font-bold text-slate-100 leading-tight w-full break-words ${isRemoved ? 'line-through text-slate-500' : ''}`}>
+                            {data.label}
+                        </div>
+                    )}
+                </div>
+
+                {/* Stage Badge */}
+                {data.stage && (
+                    <span
+                        className="absolute -top-3 -right-2 text-[8px] font-bold px-1.5 py-0.5 rounded-md border text-slate-900 shadow-sm z-20"
+                        style={{ backgroundColor: borderColor, borderColor: '#fff' }}
+                    >
+                        {data.stage}
+                    </span>
+                )}
+
+                <Handle
+                    type="target"
+                    position={targetPosition || Position.Left}
+                    className="!w-3 !h-3 !bg-indigo-400 !border-2 !border-slate-800 hover:!bg-indigo-300 hover:!scale-150 transition-transform cursor-crosshair z-[1000] !z-[1000]"
+                    style={isHorizontal ? { left: '-6px', top: '50%' } : { left: '50%', top: '-6px' }}
+                />
+                <Handle
+                    type="source"
+                    position={sourcePosition || Position.Right}
+                    className="!w-3 !h-3 !bg-emerald-400 !border-2 !border-slate-800 hover:!bg-emerald-300 hover:!scale-150 transition-transform cursor-crosshair z-[1000] !z-[1000]"
+                    style={isHorizontal ? { right: '-6px', left: 'auto', top: '50%' } : { left: '50%', bottom: '-6px', top: 'auto' }}
+                />
+            </div>
+        );
+    }
+
     // SKETCH MODE RENDER
     if (isSketch) {
         return (
@@ -438,46 +611,7 @@ const CustomNode = ({ id, data, selected, sourcePosition, targetPosition }: Node
         >
 
             {/* --- INFO BOX (Attached to Top Left) --- */}
-            <NodeToolbar isVisible={selected} position={Position.Top} align="start" offset={20}>
-                <div className="w-72 bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-xl shadow-2xl p-3 text-left animate-in fade-in zoom-in-95 duration-200 origin-bottom-left flex flex-col max-h-64 overflow-hidden">
-                    <div className="flex items-center gap-2 mb-2 border-b border-slate-700/50 pb-2 shrink-0">
-                        <Info className="w-3.5 h-3.5 text-indigo-400" />
-                        <span className="text-xs font-bold text-slate-200">Component Info</span>
-                    </div>
-
-                    <div className="space-y-2 overflow-y-auto pr-1 custom-scrollbar">
-                        <div>
-                            <span className="text-[10px] text-slate-500 uppercase font-semibold">Label:</span>
-                            <p className="text-sm font-medium text-slate-100">{data.label}</p>
-                        </div>
-
-                        {data.details && (
-                            <div>
-                                <span className="text-[10px] text-slate-500 uppercase font-semibold">Details:</span>
-                                <div className="bg-slate-800/50 p-2 rounded border border-slate-700/30 mt-0.5">
-                                    <MarkdownRenderer content={data.details} className="text-[11px] text-slate-300 leading-relaxed" />
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="flex gap-2 pt-1 flex-wrap">
-                            {data.technology && (
-                                <div className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] text-indigo-300">
-                                    {data.technology}
-                                </div>
-                            )}
-                            {data.stage && (
-                                <div className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] text-emerald-300">
-                                    {data.stage}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Arrow pointer styling */}
-                    <div className="absolute -bottom-2 left-4 w-4 h-4 bg-slate-900 border-r border-b border-slate-700 transform rotate-45"></div>
-                </div>
-            </NodeToolbar>
+            {renderNodeToolbar()}
 
             {/* 1. ISOMETRIC ICON (Now On Top) */}
             <div

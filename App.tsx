@@ -79,10 +79,10 @@ const App = () => {
     useEffect(() => {
         document.body.classList.toggle('low-power-mode', isLowPowerMode);
         document.body.classList.toggle('sketch-mode', isSketchMode);
-        // Sync Sketch Mode
-        flow.setNodes(nds => nds.map(n => ({ ...n, data: { ...n.data, isSketchMode } })));
-        flow.setEdges(eds => eds.map(e => ({ ...e, data: { ...e.data, isSketchMode } })));
-    }, [isLowPowerMode, isSketchMode, flow.setNodes, flow.setEdges]);
+        // Sync Sketch Mode and Preview Mode
+        flow.setNodes(nds => nds.map(n => ({ ...n, data: { ...n.data, isSketchMode, isPreviewMode } })));
+        flow.setEdges(eds => eds.map(e => ({ ...e, data: { ...e.data, isSketchMode, isPreviewMode } })));
+    }, [isLowPowerMode, isSketchMode, isPreviewMode, flow.setNodes, flow.setEdges]);
 
     // --- HANDLERS ---
     const handleNodeContextMenu = useCallback((e: React.MouseEvent, node: Node) => {

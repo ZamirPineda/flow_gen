@@ -44,6 +44,7 @@ export interface NodeData {
 
   // Visual Modes
   isSketchMode?: boolean; // For Hand-drawn style
+  isPreviewMode?: boolean; // For presentation 3D view
 
   // Version Comparison
   diffStatus?: DiffStatus; // For Visual Diff Mode
