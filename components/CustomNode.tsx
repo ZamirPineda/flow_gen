@@ -616,7 +616,7 @@ const CustomNode = ({ id, data, selected, sourcePosition, targetPosition }: Node
             {/* 1. ISOMETRIC ICON (Now On Top) */}
             <div
                 className={`
-            relative z-10 transition-transform duration-500 ease-out mb-[-5px] 
+            relative z-30 transition-transform duration-500 ease-out mb-[-5px] 
             ${isRemoved ? 'grayscale opacity-70' : ''}
         `}
                 style={{

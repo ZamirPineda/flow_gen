@@ -1,10 +1,18 @@
 
 import React, { memo } from 'react';
-import { NodeProps, NodeResizer, Handle, Position } from 'reactflow';
+import { NodeProps, NodeResizer, Handle, Position, useReactFlow } from 'reactflow';
+import { Trash2 } from 'lucide-react';
 
 // A specialized node just for the title. 
 // Now includes NodeResizer so the user can control the box size and the extent of the glow.
-const TitleNode = ({ data, selected }: NodeProps) => {
+const TitleNode = ({ id, data, selected }: NodeProps) => {
+    const { setNodes } = useReactFlow();
+
+    const handleDelete = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setNodes((nds) => nds.filter((node) => node.id !== id));
+    };
+
     return (
         <>
             <NodeResizer
@@ -46,6 +54,17 @@ const TitleNode = ({ data, selected }: NodeProps) => {
 
                 {/* Underline Decoration */}
                 <div className="w-32 h-1.5 bg-indigo-500 mt-4 rounded-full opacity-80 shadow-[0_0_10px_rgba(99,102,241,0.8)] pointer-events-none" />
+
+                {/* Delete Button when selected */}
+                {selected && (
+                    <button
+                        onClick={handleDelete}
+                        className="absolute -top-3 -right-3 w-8 h-8 bg-slate-800 hover:bg-red-500 border-2 border-slate-700 hover:border-red-600 text-slate-400 hover:text-white rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110 z-50 pointer-events-auto"
+                        title="Delete text note"
+                    >
+                        <Trash2 size={16} />
+                    </button>
+                )}
             </div>
 
             <Handle

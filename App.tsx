@@ -220,6 +220,10 @@ const App = () => {
                     onNodesChange={flow.onNodesChange} onEdgesChange={flow.onEdgesChange}
                     onConnect={flow.onConnect}
                     onNodeClick={(e, n) => { setMenuData(null); flow.setSelectedNode(n); }}
+                    onPaneClick={() => { setMenuData(null); flow.setSelectedNode(null); }}
+                    onSelectionChange={({ nodes }) => {
+                        if (nodes.length === 0) flow.setSelectedNode(null);
+                    }}
                     onNodeDragStart={flow.onNodeDragStart}
                     onNodeDragStop={flow.onNodeDragStop}
                     onNodeContextMenu={handleNodeContextMenu}
