@@ -5,6 +5,7 @@ import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
 import _ from 'lodash';
+import { generateUUID, sanitizeString } from '../utils/security';
 
 // Helper to determine palette
 const getThemePalette = (type: DiagramType): string[] => {
@@ -180,6 +181,12 @@ export const useFlowController = (
                     let anyCollapsed = false;
 
                     const processedNodes = flowData.nodes.map((n: any) => {
+                        const sanitizedData = {
+                            ...n.data,
+                            label: sanitizeString(n.data?.label),
+                            details: sanitizeString(n.data?.details)
+                        };
+
                         if (n.type === 'group') {
                             hasGroups = true;
                             if (n.data.isTransparent) anyTransparent = true;
@@ -192,13 +199,13 @@ export const useFlowController = (
                             return {
                                 ...n,
                                 data: {
-                                    ...n.data,
+                                    ...sanitizedData,
                                     expandedWidth: n.data.expandedWidth || (w ? Number(w) : 400),
                                     expandedHeight: n.data.expandedHeight || (h ? Number(h) : 400)
                                 }
                             };
                         }
-                        return n;
+                        return { ...n, data: sanitizedData };
                     });
 
                     // Detect Diagram Type from imported nodes to update Legend
@@ -405,7 +412,7 @@ export const useFlowController = (
         }
 
         const newNode: Node = {
-            id: `node-${Date.now()}`,
+            id: `node-${generateUUID()}`,
             type: 'custom',
             position: { x: newX, y: newY },
             data: {
@@ -434,7 +441,7 @@ export const useFlowController = (
         }
 
         const newGroup: Node = {
-            id: `group-${Date.now()}`,
+            id: `group-${generateUUID()}`,
             type: 'group',
             position: { x: newX, y: newY },
             style: { width: 400, height: 400 },
@@ -464,7 +471,7 @@ export const useFlowController = (
         }
 
         const newText: Node = {
-            id: `text-${Date.now()}`,
+            id: `text-${generateUUID()}`,
             type: 'title', // Uses the existing 'title' node type for generic text
             position: { x: newX, y: newY },
             data: {
