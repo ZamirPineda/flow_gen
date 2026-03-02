@@ -140,8 +140,15 @@ const Background3D = () => {
         if (mountRef.current && renderer.domElement) {
              mountRef.current.removeChild(renderer.domElement);
         }
+
+        // Proper memory disposal
         geometry.dispose();
         material.dispose();
+        gridHelper.geometry.dispose();
+        (gridHelper.material as THREE.Material).dispose();
+
+        scene.clear();
+        renderer.dispose();
     };
   }, []);
 
