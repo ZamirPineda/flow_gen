@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerType, ReactFlowInstance } from 'reactflow';
 import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
+import { generateUUID } from '../utils/security';
 import { THEME } from '../theme';
 import _ from 'lodash';
 
@@ -71,7 +72,7 @@ export const useFlowController = (
                 edges,
                 layoutDirection,
                 currentDiagramType,
-                timestamp: Date.now()
+                timestamp: Date.now() // Timestamps are fine to keep as Date.now()
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
         }, 1000);
@@ -405,7 +406,7 @@ export const useFlowController = (
         }
 
         const newNode: Node = {
-            id: `node-${Date.now()}`,
+            id: `node-${generateUUID()}`,
             type: 'custom',
             position: { x: newX, y: newY },
             data: {
@@ -434,7 +435,7 @@ export const useFlowController = (
         }
 
         const newGroup: Node = {
-            id: `group-${Date.now()}`,
+            id: `group-${generateUUID()}`,
             type: 'group',
             position: { x: newX, y: newY },
             style: { width: 400, height: 400 },
@@ -464,7 +465,7 @@ export const useFlowController = (
         }
 
         const newText: Node = {
-            id: `text-${Date.now()}`,
+            id: `text-${generateUUID()}`,
             type: 'title', // Uses the existing 'title' node type for generic text
             position: { x: newX, y: newY },
             data: {

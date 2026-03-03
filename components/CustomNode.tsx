@@ -3,6 +3,7 @@
 import React, { memo, useState, useRef, useEffect } from 'react';
 import { Handle, Position, NodeProps, NodeToolbar, useReactFlow } from 'reactflow';
 import { DiagramType, NodeData } from '../types';
+import { sanitizeString } from '../utils/security';
 import { THEME } from '../theme';
 import {
     IsometricServer, IsometricDB, IsometricLaptop, IsometricCloud,
