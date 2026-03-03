@@ -142,6 +142,7 @@ const Background3D = () => {
         }
         geometry.dispose();
         material.dispose();
+        renderer.dispose();
     };
   }, []);
 

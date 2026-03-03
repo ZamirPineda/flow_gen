@@ -9,14 +9,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/dompurify": "^3.2.0",
+    "dagre": "^0.8.5",
+    "dompurify": "^3.3.1",
+    "html-to-image": "1.11.11",
+    "lodash": "^4.17.21",
+    "lucide-react": "^0.555.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "lucide-react": "^0.555.0",
     "reactflow": "^11.11.4",
-    "dagre": "^0.8.5",
-    "html-to-image": "1.11.11",
-    "three": "0.160.0",
-    "lodash": "^4.17.21"
+    "three": "0.160.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

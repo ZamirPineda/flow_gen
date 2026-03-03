@@ -23,6 +23,7 @@ import { useUndoRedo } from './hooks/useUndoRedo';
 import { usePresentation } from './hooks/usePresentation';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { getLayoutedElements } from './utils/layout';
+import { generateUUID } from './utils/security';
 import { DiagramType, NodeData, HistoryItem, ToastMessage, ToastType } from './types';
 import { THEME } from './theme';
 import { Map, MapPinOff, Maximize } from 'lucide-react';
@@ -55,7 +56,7 @@ const App = () => {
 
     // --- HELPERS ---
     const addToast = useCallback((title: string, message: string, type: ToastType = 'info') => {
-        setToasts(prev => [...prev, { id: Math.random().toString(), title, message, type }]);
+        setToasts(prev => [...prev, { id: generateUUID(), title, message, type }]);
     }, []);
     const removeToast = (id: string) => setToasts(prev => prev.filter(t => t.id !== id));
 
