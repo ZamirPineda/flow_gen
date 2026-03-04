@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerType, ReactFlowInstance } from 'reactflow';
 import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
+import { diagramStateSchema } from '../utils/schema';
 import { THEME } from '../theme';
 import _ from 'lodash';
 
@@ -47,13 +48,17 @@ export const useFlowController = (
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
-                if (parsed.nodes && parsed.nodes.length > 0) {
-                    setNodes(parsed.nodes);
-                    setEdges(parsed.edges || []);
-                    if (parsed.layoutDirection) setLayoutDirection(parsed.layoutDirection);
-                    if (parsed.currentDiagramType) setCurrentDiagramType(parsed.currentDiagramType);
-                    // Viewport restore happens via onInit typically, or we wait for rfInstance
-                    // We can defer that to when rfInstance is ready below
+                const result = diagramStateSchema.safeParse(parsed);
+                if (result.success) {
+                    const data = result.data;
+                    if (data.nodes && data.nodes.length > 0) {
+                        setNodes(data.nodes as Node[]);
+                        setEdges(data.edges as Edge[] || []);
+                        if (data.layoutDirection) setLayoutDirection(data.layoutDirection as any);
+                        if (data.currentDiagramType) setCurrentDiagramType(data.currentDiagramType as any);
+                    }
+                } else {
+                    console.warn("Invalid saved diagram state format", result.error);
                 }
             } catch (e) {
                 console.error("Failed to load saved diagram", e);
@@ -169,9 +174,11 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const parsedContent = JSON.parse(content);
+                const result = diagramStateSchema.safeParse(parsedContent);
 
-                if (flowData.nodes && flowData.edges) {
+                if (result.success && result.data.nodes && result.data.edges) {
+                    const flowData = result.data;
                     takeSnapshot(nodes, edges);
 
                     // PRE-PROCESS NODES TO FIX GROUPS & SYNC STATE
@@ -405,7 +412,7 @@ export const useFlowController = (
         }
 
         const newNode: Node = {
-            id: `node-${Date.now()}`,
+            id: `node-${crypto.randomUUID()}`,
             type: 'custom',
             position: { x: newX, y: newY },
             data: {
@@ -434,7 +441,7 @@ export const useFlowController = (
         }
 
         const newGroup: Node = {
-            id: `group-${Date.now()}`,
+            id: `group-${crypto.randomUUID()}`,
             type: 'group',
             position: { x: newX, y: newY },
             style: { width: 400, height: 400 },
@@ -464,7 +471,7 @@ export const useFlowController = (
         }
 
         const newText: Node = {
-            id: `text-${Date.now()}`,
+            id: `text-${crypto.randomUUID()}`,
             type: 'title', // Uses the existing 'title' node type for generic text
             position: { x: newX, y: newY },
             data: {
