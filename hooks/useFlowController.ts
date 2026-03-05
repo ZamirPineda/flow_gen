@@ -4,6 +4,7 @@ import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerTy
 import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
+import { SavedFlowStateSchema, ImportedFlowStateSchema } from '../utils/schema';
 import _ from 'lodash';
 
 // Helper to determine palette
@@ -47,16 +48,21 @@ export const useFlowController = (
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
-                if (parsed.nodes && parsed.nodes.length > 0) {
-                    setNodes(parsed.nodes);
-                    setEdges(parsed.edges || []);
-                    if (parsed.layoutDirection) setLayoutDirection(parsed.layoutDirection);
-                    if (parsed.currentDiagramType) setCurrentDiagramType(parsed.currentDiagramType);
+                // Schema Validation: Ensure the data is safe to deserialize
+                const validatedData = SavedFlowStateSchema.parse(parsed);
+
+                if (validatedData.nodes && validatedData.nodes.length > 0) {
+                    // Cast validated data to compatible types
+                    setNodes(validatedData.nodes as Node[]);
+                    setEdges(validatedData.edges as Edge[]);
+                    if (validatedData.layoutDirection) setLayoutDirection(validatedData.layoutDirection as 'TB' | 'LR');
+                    if (validatedData.currentDiagramType) setCurrentDiagramType(validatedData.currentDiagramType as DiagramType);
                     // Viewport restore happens via onInit typically, or we wait for rfInstance
-                    // We can defer that to when rfInstance is ready below
                 }
             } catch (e) {
-                console.error("Failed to load saved diagram", e);
+                console.error("Failed to load or validate saved diagram state. Prototype Pollution mitigated.", e);
+                addToast("Warning", "Failed to restore previous session due to invalid data format.", "warning");
+                localStorage.removeItem(STORAGE_KEY); // Clear potentially malicious or corrupted state
             }
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -169,7 +175,10 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const rawFlowData = JSON.parse(content);
+
+                // Validate external data securely before parsing
+                const flowData = ImportedFlowStateSchema.parse(rawFlowData);
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
@@ -210,11 +219,15 @@ export const useFlowController = (
                         // This prevents resetting to Data Engineering if the user imports a legacy file
                     }
 
-                    setNodes(processedNodes);
-                    setEdges(flowData.edges);
+                    setNodes(processedNodes as Node[]);
+                    setEdges(flowData.edges as Edge[]);
 
                     if (flowData.viewport && rfInstance) {
-                        rfInstance.setViewport(flowData.viewport);
+                        rfInstance.setViewport({
+                            x: flowData.viewport.x,
+                            y: flowData.viewport.y,
+                            zoom: flowData.viewport.zoom
+                        });
                     }
 
                     // Sync UI Toggles
@@ -231,8 +244,8 @@ export const useFlowController = (
                     addToast("Error", "Invalid JSON format.", "error");
                 }
             } catch (err) {
-                console.error(err);
-                addToast("Error", "Failed to parse JSON file.", "error");
+                console.error("Import Error: Schema Validation Failed", err);
+                addToast("Error", "Invalid or corrupted diagram file. Import aborted.", "error");
             }
         };
         reader.readAsText(file);
@@ -405,7 +418,7 @@ export const useFlowController = (
         }
 
         const newNode: Node = {
-            id: `node-${Date.now()}`,
+            id: `node-${crypto.randomUUID()}`,
             type: 'custom',
             position: { x: newX, y: newY },
             data: {
@@ -434,7 +447,7 @@ export const useFlowController = (
         }
 
         const newGroup: Node = {
-            id: `group-${Date.now()}`,
+            id: `group-${crypto.randomUUID()}`,
             type: 'group',
             position: { x: newX, y: newY },
             style: { width: 400, height: 400 },
@@ -464,7 +477,7 @@ export const useFlowController = (
         }
 
         const newText: Node = {
-            id: `text-${Date.now()}`,
+            id: `text-${crypto.randomUUID()}`,
             type: 'title', // Uses the existing 'title' node type for generic text
             position: { x: newX, y: newY },
             data: {
