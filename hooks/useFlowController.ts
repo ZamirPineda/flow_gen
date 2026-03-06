@@ -5,6 +5,7 @@ import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
 import _ from 'lodash';
+import { diagramStateSchema } from '../utils/schema';
 
 // Helper to determine palette
 const getThemePalette = (type: DiagramType): string[] => {
@@ -47,11 +48,12 @@ export const useFlowController = (
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
-                if (parsed.nodes && parsed.nodes.length > 0) {
-                    setNodes(parsed.nodes);
-                    setEdges(parsed.edges || []);
-                    if (parsed.layoutDirection) setLayoutDirection(parsed.layoutDirection);
-                    if (parsed.currentDiagramType) setCurrentDiagramType(parsed.currentDiagramType);
+                const validatedData = diagramStateSchema.parse(parsed);
+                if (validatedData.nodes && validatedData.nodes.length > 0) {
+                    setNodes(validatedData.nodes);
+                    setEdges(validatedData.edges || []);
+                    if (validatedData.layoutDirection) setLayoutDirection(validatedData.layoutDirection as 'TB' | 'LR');
+                    if (validatedData.currentDiagramType) setCurrentDiagramType(validatedData.currentDiagramType as DiagramType);
                     // Viewport restore happens via onInit typically, or we wait for rfInstance
                     // We can defer that to when rfInstance is ready below
                 }
@@ -169,7 +171,8 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const parsed = JSON.parse(content);
+                const flowData = diagramStateSchema.parse(parsed);
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
@@ -405,7 +408,7 @@ export const useFlowController = (
         }
 
         const newNode: Node = {
-            id: `node-${Date.now()}`,
+            id: `node-${crypto.randomUUID()}`,
             type: 'custom',
             position: { x: newX, y: newY },
             data: {
@@ -434,7 +437,7 @@ export const useFlowController = (
         }
 
         const newGroup: Node = {
-            id: `group-${Date.now()}`,
+            id: `group-${crypto.randomUUID()}`,
             type: 'group',
             position: { x: newX, y: newY },
             style: { width: 400, height: 400 },
@@ -464,7 +467,7 @@ export const useFlowController = (
         }
 
         const newText: Node = {
-            id: `text-${Date.now()}`,
+            id: `text-${crypto.randomUUID()}`,
             type: 'title', // Uses the existing 'title' node type for generic text
             position: { x: newX, y: newY },
             data: {
