@@ -73,6 +73,9 @@ export const computeGraphDiff = (
     const getEdgeKey = (e: Edge) => `${e.source}-${e.target}`;
     const oldEdgeKeys = new Set(oldGraph.edges.map(getEdgeKey));
 
+    // Performance Optimization: Cache new edge keys to avoid O(N*M) lookups later
+    const newEdgeKeys = new Set(newGraph.edges.map(getEdgeKey));
+
     newGraph.edges.forEach(newEdge => {
         processedEdgeIds.add(newEdge.id);
         const key = getEdgeKey(newEdge);
@@ -96,7 +99,7 @@ export const computeGraphDiff = (
         // If exact ID missing AND connection logic missing
         // (We check connection logic because auto-generated IDs change)
         const key = getEdgeKey(oldEdge);
-        const existsInNew = newGraph.edges.some(ne => getEdgeKey(ne) === key);
+        const existsInNew = newEdgeKeys.has(key);
 
         if (!existsInNew) {
              mergedEdges.push({
