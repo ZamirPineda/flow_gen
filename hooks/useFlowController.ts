@@ -4,6 +4,7 @@ import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerTy
 import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
+import { DiagramStateSchema } from '../utils/schema';
 import _ from 'lodash';
 
 // Helper to determine palette
@@ -46,14 +47,22 @@ export const useFlowController = (
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (savedData) {
             try {
-                const parsed = JSON.parse(savedData);
-                if (parsed.nodes && parsed.nodes.length > 0) {
-                    setNodes(parsed.nodes);
-                    setEdges(parsed.edges || []);
-                    if (parsed.layoutDirection) setLayoutDirection(parsed.layoutDirection);
-                    if (parsed.currentDiagramType) setCurrentDiagramType(parsed.currentDiagramType);
-                    // Viewport restore happens via onInit typically, or we wait for rfInstance
-                    // We can defer that to when rfInstance is ready below
+                const rawParsed = JSON.parse(savedData);
+                // Schema Validation applied to LocalStorage state
+                const parseResult = DiagramStateSchema.safeParse(rawParsed);
+
+                if (parseResult.success) {
+                    const parsed = parseResult.data;
+                    if (parsed.nodes && parsed.nodes.length > 0) {
+                        setNodes(parsed.nodes as Node[]);
+                        setEdges(parsed.edges as Edge[] || []);
+                        if (parsed.layoutDirection) setLayoutDirection(parsed.layoutDirection as 'TB' | 'LR');
+                        if (parsed.currentDiagramType) setCurrentDiagramType(parsed.currentDiagramType);
+                        // Viewport restore happens via onInit typically, or we wait for rfInstance
+                        // We can defer that to when rfInstance is ready below
+                    }
+                } else {
+                    console.error("Local storage state is invalid or corrupted.", parseResult.error);
                 }
             } catch (e) {
                 console.error("Failed to load saved diagram", e);
@@ -169,9 +178,13 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const rawFlowData = JSON.parse(content);
 
-                if (flowData.nodes && flowData.edges) {
+                // Strict validation for external files to prevent Prototype Pollution
+                const parseResult = DiagramStateSchema.safeParse(rawFlowData);
+
+                if (parseResult.success) {
+                    const flowData = parseResult.data;
                     takeSnapshot(nodes, edges);
 
                     // PRE-PROCESS NODES TO FIX GROUPS & SYNC STATE
@@ -205,13 +218,13 @@ export const useFlowController = (
                     const firstTypedNode = processedNodes.find((n: any) => n.data?.diagramType);
                     if (firstTypedNode) {
                         setCurrentDiagramType(firstTypedNode.data.diagramType);
-                    } else if (flowData.title) {
+                    } else if (rawFlowData.title) { // Fallback to raw data title
                         // Fallback simple detection from title if needed, otherwise keep default
                         // This prevents resetting to Data Engineering if the user imports a legacy file
                     }
 
-                    setNodes(processedNodes);
-                    setEdges(flowData.edges);
+                    setNodes(processedNodes as Node[]);
+                    setEdges(flowData.edges as Edge[]);
 
                     if (flowData.viewport && rfInstance) {
                         rfInstance.setViewport(flowData.viewport);
@@ -228,7 +241,8 @@ export const useFlowController = (
 
                     addToast("Import", "Diagram imported successfully.", "success");
                 } else {
-                    addToast("Error", "Invalid JSON format.", "error");
+                    console.error("Schema validation error", parseResult.error);
+                    addToast("Security Error", "Imported file failed strict schema validation. Possible corruption or malicious payload.", "error");
                 }
             } catch (err) {
                 console.error(err);
@@ -405,7 +419,7 @@ export const useFlowController = (
         }
 
         const newNode: Node = {
-            id: `node-${Date.now()}`,
+            id: `node-${crypto.randomUUID()}`,
             type: 'custom',
             position: { x: newX, y: newY },
             data: {
@@ -434,7 +448,7 @@ export const useFlowController = (
         }
 
         const newGroup: Node = {
-            id: `group-${Date.now()}`,
+            id: `group-${crypto.randomUUID()}`,
             type: 'group',
             position: { x: newX, y: newY },
             style: { width: 400, height: 400 },
@@ -464,7 +478,7 @@ export const useFlowController = (
         }
 
         const newText: Node = {
-            id: `text-${Date.now()}`,
+            id: `text-${crypto.randomUUID()}`,
             type: 'title', // Uses the existing 'title' node type for generic text
             position: { x: newX, y: newY },
             data: {
