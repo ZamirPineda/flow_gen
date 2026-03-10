@@ -1,5 +1,6 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
+import DOMPurify from 'dompurify';
 
 interface MarkdownRendererProps {
   content: string;
@@ -7,10 +8,12 @@ interface MarkdownRendererProps {
 }
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className = '' }) => {
-  if (!content) return null;
+  const cleanContent = useMemo(() => DOMPurify.sanitize(content), [content]);
+
+  if (!cleanContent) return null;
 
   // Split by code blocks first
-  const parts = content.split(/(```[\s\S]*?```)/g);
+  const parts = cleanContent.split(/(```[\s\S]*?```)/g);
 
   return (
     <div className={`space-y-2 ${className}`}>
