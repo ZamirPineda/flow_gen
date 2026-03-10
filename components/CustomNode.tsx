@@ -1,6 +1,7 @@
 
 
 import React, { memo, useState, useRef, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { Handle, Position, NodeProps, NodeToolbar, useReactFlow } from 'reactflow';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
@@ -222,13 +223,18 @@ const CustomNode = ({ id, data, selected, sourcePosition, targetPosition }: Node
 
     const handleEditSubmit = () => {
         setIsEditing(false);
-        if (editLabel.trim() !== data.label) {
+
+        const cleanLabel = DOMPurify.sanitize(editLabel.trim(), { ALLOWED_TAGS: [] });
+
+        if (cleanLabel !== data.label) {
             setNodes((nds) => nds.map((node) => {
                 if (node.id === id) {
-                    return { ...node, data: { ...node.data, label: editLabel } };
+                    return { ...node, data: { ...node.data, label: cleanLabel } };
                 }
                 return node;
             }));
+        } else {
+            setEditLabel(data.label);
         }
     };
 
