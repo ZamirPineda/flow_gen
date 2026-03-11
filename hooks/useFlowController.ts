@@ -5,6 +5,7 @@ import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
 import _ from 'lodash';
+import { FlowStateSchema } from '../utils/schema';
 
 // Helper to determine palette
 const getThemePalette = (type: DiagramType): string[] => {
@@ -47,16 +48,18 @@ export const useFlowController = (
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
-                if (parsed.nodes && parsed.nodes.length > 0) {
-                    setNodes(parsed.nodes);
-                    setEdges(parsed.edges || []);
-                    if (parsed.layoutDirection) setLayoutDirection(parsed.layoutDirection);
-                    if (parsed.currentDiagramType) setCurrentDiagramType(parsed.currentDiagramType);
+                const validatedData = FlowStateSchema.parse(parsed);
+                if (validatedData.nodes && validatedData.nodes.length > 0) {
+                    setNodes(validatedData.nodes as Node[]);
+                    setEdges(validatedData.edges as Edge[] || []);
+                    if (validatedData.layoutDirection) setLayoutDirection(validatedData.layoutDirection as 'TB' | 'LR');
+                    if (validatedData.currentDiagramType) setCurrentDiagramType(validatedData.currentDiagramType as DiagramType);
                     // Viewport restore happens via onInit typically, or we wait for rfInstance
                     // We can defer that to when rfInstance is ready below
                 }
             } catch (e) {
-                console.error("Failed to load saved diagram", e);
+                console.error("Failed to load or validate saved diagram", e);
+                localStorage.removeItem(STORAGE_KEY); // Clean up corrupted/invalid data
             }
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -169,9 +172,10 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const parsedData = JSON.parse(content);
+                const flowData = FlowStateSchema.parse(parsedData);
 
-                if (flowData.nodes && flowData.edges) {
+                if (flowData.nodes) {
                     takeSnapshot(nodes, edges);
 
                     // PRE-PROCESS NODES TO FIX GROUPS & SYNC STATE
@@ -210,11 +214,15 @@ export const useFlowController = (
                         // This prevents resetting to Data Engineering if the user imports a legacy file
                     }
 
-                    setNodes(processedNodes);
-                    setEdges(flowData.edges);
+                    setNodes(processedNodes as Node[]);
+                    setEdges((flowData.edges as Edge[]) || []);
 
                     if (flowData.viewport && rfInstance) {
-                        rfInstance.setViewport(flowData.viewport);
+                        rfInstance.setViewport({
+                            x: flowData.viewport.x,
+                            y: flowData.viewport.y,
+                            zoom: flowData.viewport.zoom
+                        });
                     }
 
                     // Sync UI Toggles
@@ -228,11 +236,11 @@ export const useFlowController = (
 
                     addToast("Import", "Diagram imported successfully.", "success");
                 } else {
-                    addToast("Error", "Invalid JSON format.", "error");
+                    addToast("Error", "Invalid Diagram format.", "error");
                 }
             } catch (err) {
                 console.error(err);
-                addToast("Error", "Failed to parse JSON file.", "error");
+                addToast("Error", "Failed to parse or validate JSON file.", "error");
             }
         };
         reader.readAsText(file);
@@ -405,7 +413,7 @@ export const useFlowController = (
         }
 
         const newNode: Node = {
-            id: `node-${Date.now()}`,
+            id: `node-${crypto.randomUUID()}`,
             type: 'custom',
             position: { x: newX, y: newY },
             data: {
@@ -434,7 +442,7 @@ export const useFlowController = (
         }
 
         const newGroup: Node = {
-            id: `group-${Date.now()}`,
+            id: `group-${crypto.randomUUID()}`,
             type: 'group',
             position: { x: newX, y: newY },
             style: { width: 400, height: 400 },
@@ -464,7 +472,7 @@ export const useFlowController = (
         }
 
         const newText: Node = {
-            id: `text-${Date.now()}`,
+            id: `text-${crypto.randomUUID()}`,
             type: 'title', // Uses the existing 'title' node type for generic text
             position: { x: newX, y: newY },
             data: {
