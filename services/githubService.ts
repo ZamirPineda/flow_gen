@@ -1,4 +1,6 @@
 
+import { isValidGitHubUrl } from '../utils/security';
+
 export interface RepoInfo {
     owner: string;
     repo: string;
@@ -36,13 +38,27 @@ const RELEVANT_FILES = [
 
 export const parseRepoUrl = (url: string): RepoInfo | null => {
     try {
+        // Security: Use centralized validation for protocol and domain
+        if (!isValidGitHubUrl(url)) return null;
+
+        // Security: Prevent directory traversal attempts in the raw URL
+        if (url.includes('..')) return null;
+
         const urlObj = new URL(url);
         const pathParts = urlObj.pathname.split('/').filter(Boolean);
         if (pathParts.length >= 2) {
-            return {
-                owner: pathParts[0],
-                repo: pathParts[1]
-            };
+            const owner = pathParts[0];
+            const repo = pathParts[1];
+
+            // Security: Prevent directory traversal or injection via URL components
+            // Allow alphanumeric, hyphens, underscores, and periods.
+            const safePattern = /^[a-zA-Z0-9_.-]+$/;
+            // Explicitly reject ".." or start/end with period to prevent traversal attempts
+            if (!safePattern.test(owner) || !safePattern.test(repo) || owner.includes('..') || repo.includes('..')) {
+                return null;
+            }
+
+            return { owner, repo };
         }
         return null;
     } catch (e) {
