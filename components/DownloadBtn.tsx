@@ -155,6 +155,9 @@ const DownloadBtn = () => {
             transparent: null // Ensure no transparency issues
           });
 
+          // Cleanup workerUrl after instantiation
+          setTimeout(() => URL.revokeObjectURL(workerUrl), 5000);
+
           const frames = 20; 
           
           for (let i = 0; i < frames; i++) {
@@ -184,6 +187,7 @@ const DownloadBtn = () => {
           gif.on('finished', (blob: Blob) => {
               const url = URL.createObjectURL(blob);
               downloadFile(url, `${getFilePrefix()}.gif`);
+              URL.revokeObjectURL(url); // Ensure memory cleanup
               setIsExportingGif(false);
           });
 
@@ -206,13 +210,17 @@ const DownloadBtn = () => {
           viewport: { x: 0, y: 0, zoom: 1 }
       };
       
-      const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-        JSON.stringify(flow, null, 2)
-      )}`;
+      // 1. AppSec: Secure file downloads via Blob instead of data URI to handle large data safely
+      // and prevent certain vectors.
+      const blob = new Blob([JSON.stringify(flow, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = jsonString;
+      link.href = url;
       link.download = `${getFilePrefix()}.json`;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url); // Ensure memory cleanup
   };
 
   const exportMermaid = () => {
@@ -224,7 +232,10 @@ const DownloadBtn = () => {
       const link = document.createElement('a');
       link.href = url;
       link.download = `${getFilePrefix()}.mmd`;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url); // Ensure memory cleanup
   };
 
   return (
