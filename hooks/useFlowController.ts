@@ -5,6 +5,8 @@ import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
 import _ from 'lodash';
+import { flowStateSchema } from '../utils/schema';
+
 
 // Helper to determine palette
 const getThemePalette = (type: DiagramType): string[] => {
@@ -46,7 +48,13 @@ export const useFlowController = (
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (savedData) {
             try {
-                const parsed = JSON.parse(savedData);
+                const parsedRaw = JSON.parse(savedData);
+                const parsedResult = flowStateSchema.safeParse(parsedRaw);
+                if (!parsedResult.success) {
+                    console.error("Schema validation failed on restore", parsedResult.error);
+                    return;
+                }
+                const parsed = parsedResult.data;
                 if (parsed.nodes && parsed.nodes.length > 0) {
                     setNodes(parsed.nodes);
                     setEdges(parsed.edges || []);
@@ -169,7 +177,14 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const rawFlowData = JSON.parse(content);
+                const parsedResult = flowStateSchema.safeParse(rawFlowData);
+                if (!parsedResult.success) {
+                    console.error("Schema validation failed on import", parsedResult.error);
+                    addToast("Error", "Invalid JSON structure or schema mismatch.", "error");
+                    return;
+                }
+                const flowData = parsedResult.data;
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
