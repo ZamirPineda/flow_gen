@@ -1,5 +1,7 @@
 
 import React from 'react';
+import DOMPurify from 'dompurify';
+
 
 interface MarkdownRendererProps {
   content: string;
@@ -45,16 +47,14 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className 
                 return (
                     <div key={`${index}-${lineIdx}`} className="flex gap-2 ml-2 mb-1">
                         <span className="text-indigo-400 mt-1.5">•</span>
-                        <span className="text-slate-300 leading-relaxed">{parseInline(cleanLine)}</span>
+                        <span className="text-slate-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(parseInlineToHTML(cleanLine)) }} />
                     </div>
                 );
             }
 
             // Standard Paragraph
             return (
-                <p key={`${index}-${lineIdx}`} className="text-slate-300 leading-relaxed mb-1">
-                    {parseInline(line)}
-                </p>
+                <p key={`${index}-${lineIdx}`} className="text-slate-300 leading-relaxed mb-1" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(parseInlineToHTML(line)) }} />
             );
         });
       })}
@@ -62,18 +62,23 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className 
   );
 };
 
-// Helper to handle **Bold** and `Code` inline
-const parseInline = (text: string) => {
-    const parts = text.split(/(\*\*.*?\*\*|`.*?`)/g);
-    return parts.map((part, i) => {
+
+// Helper to handle **Bold** and `Code` inline and output HTML string
+const parseInlineToHTML = (text: string): string => {
+    // Basic escaping to prevent raw HTML from being injected directly,
+    // but since we are sanitizing afterwards, we mainly need to parse our markdown subset
+    const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    const parts = escaped.split(/(\*\*.*?\*\*|`.*?`)/g);
+    return parts.map((part) => {
         if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={i} className="text-white font-semibold">{part.slice(2, -2)}</strong>;
+            return `<strong class="text-white font-semibold">${part.slice(2, -2)}</strong>`;
         }
         if (part.startsWith('`') && part.endsWith('`')) {
-            return <code key={i} className="bg-slate-800 px-1 py-0.5 rounded text-indigo-300 font-mono text-xs border border-slate-700">{part.slice(1, -1)}</code>;
+            return `<code class="bg-slate-800 px-1 py-0.5 rounded text-indigo-300 font-mono text-xs border border-slate-700">${part.slice(1, -1)}</code>`;
         }
         return part;
-    });
+    }).join('');
 };
 
 export default MarkdownRenderer;

@@ -142,6 +142,8 @@ const Background3D = () => {
         }
         geometry.dispose();
         material.dispose();
+        sprite.dispose(); // ADDED Texture disposal
+        renderer.dispose(); // ADDED Renderer disposal
     };
   }, []);
 
