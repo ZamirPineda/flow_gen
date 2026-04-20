@@ -1,5 +1,6 @@
 
 import React from 'react';
+import DOMPurify from 'dompurify';
 
 interface MarkdownRendererProps {
   content: string;
@@ -47,6 +48,18 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className 
                         <span className="text-indigo-400 mt-1.5">•</span>
                         <span className="text-slate-300 leading-relaxed">{parseInline(cleanLine)}</span>
                     </div>
+                );
+            }
+
+            // Detect raw HTML tags to sanitize and render using dangerouslySetInnerHTML
+            // If the line contains an opening HTML tag, we sanitize it and render
+            if (/(<[a-z][\s\S]*>)/i.test(line)) {
+                return (
+                    <div
+                        key={`${index}-${lineIdx}`}
+                        className="text-slate-300 leading-relaxed mb-1"
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(line) }}
+                    />
                 );
             }
 
