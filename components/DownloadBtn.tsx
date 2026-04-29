@@ -185,11 +185,14 @@ const DownloadBtn = () => {
               const url = URL.createObjectURL(blob);
               downloadFile(url, `${getFilePrefix()}.gif`);
               setIsExportingGif(false);
+              setTimeout(() => URL.revokeObjectURL(url), 150);
+              URL.revokeObjectURL(workerUrl);
           });
 
           gif.render();
 
       } catch (err) {
+          if (typeof workerUrl === 'string') URL.revokeObjectURL(workerUrl);
           console.error("GIF Generation Error", err);
           const msg = err instanceof Error ? err.message : String(err);
           if (!msg.toLowerCase().includes('resizeobserver')) {
@@ -224,7 +227,10 @@ const DownloadBtn = () => {
       const link = document.createElement('a');
       link.href = url;
       link.download = `${getFilePrefix()}.mmd`;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 150);
   };
 
   return (
