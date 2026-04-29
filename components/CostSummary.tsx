@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { DollarSign, X, TrendingUp, CreditCard, PieChart, Download } from 'lucide-react';
+import { sanitizeCellValue, downloadFileFromBlob } from '../utils/csvExport';
 
 interface CostItem {
     label: string;
@@ -21,16 +22,13 @@ const CostSummary: React.FC<CostSummaryProps> = ({ breakdown, total, onClose }) 
 
     const handleDownloadCSV = () => {
         const headers = "Component,Technology,Monthly Cost (USD)\n";
-        const rows = sorted.map(item => `"${item.label}","${item.tech}",${item.cost}`).join("\n");
-        const csvContent = "data:text/csv;charset=utf-8," + headers + rows + `\n"TOTAL","",${total}`;
+        const rows = sorted.map(item =>
+            `${sanitizeCellValue(item.label)},${sanitizeCellValue(item.tech)},${sanitizeCellValue(item.cost)}`
+        ).join("\n");
         
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "cloud_cost_estimate.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const csvContent = headers + rows + `\n"TOTAL","",${sanitizeCellValue(total)}`;
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        downloadFileFromBlob(blob, 'cloud_cost_estimate.csv');
     };
 
     return (
