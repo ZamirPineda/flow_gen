@@ -242,7 +242,11 @@ export const useFlowController = (
     const onConnect = useCallback((params: Connection) => {
         takeSnapshot(nodes, edges);
         const palette = getThemePalette(currentDiagramType);
-        const color = palette[Math.floor(Math.random() * palette.length)];
+
+        // Use crypto.getRandomValues for secure randomness
+        const array = new Uint32Array(1);
+        window.crypto.getRandomValues(array);
+        const color = palette[array[0] % palette.length];
 
         setEdges((eds) => addEdge({
             ...params,
