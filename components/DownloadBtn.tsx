@@ -4,11 +4,19 @@ import { toPng, toSvg } from 'html-to-image';
 import { FileJson, Image as ImageIcon, FileCode, Film, Loader2, ScrollText, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { toMermaid } from '../utils/mermaidExport';
 
-const downloadFile = (dataUrl: string, filename: string) => {
+const downloadFile = (dataUrl: string, filename: string, isObjectUrl: boolean = false) => {
   const a = document.createElement('a');
   a.setAttribute('download', filename);
   a.setAttribute('href', dataUrl);
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
+
+  if (isObjectUrl) {
+    setTimeout(() => {
+      URL.revokeObjectURL(dataUrl);
+    }, 100);
+  }
 };
 
 const DownloadBtn = () => {
@@ -183,7 +191,7 @@ const DownloadBtn = () => {
 
           gif.on('finished', (blob: Blob) => {
               const url = URL.createObjectURL(blob);
-              downloadFile(url, `${getFilePrefix()}.gif`);
+              downloadFile(url, `${getFilePrefix()}.gif`, true);
               setIsExportingGif(false);
           });
 
@@ -206,13 +214,9 @@ const DownloadBtn = () => {
           viewport: { x: 0, y: 0, zoom: 1 }
       };
       
-      const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-        JSON.stringify(flow, null, 2)
-      )}`;
-      const link = document.createElement('a');
-      link.href = jsonString;
-      link.download = `${getFilePrefix()}.json`;
-      link.click();
+      const blob = new Blob([JSON.stringify(flow, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      downloadFile(url, `${getFilePrefix()}.json`, true);
   };
 
   const exportMermaid = () => {
@@ -221,10 +225,7 @@ const DownloadBtn = () => {
       const mermaidString = toMermaid(nodes, edges, 'LR');
       const blob = new Blob([mermaidString], { type: 'text/vnd.mermaid' });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${getFilePrefix()}.mmd`;
-      link.click();
+      downloadFile(url, `${getFilePrefix()}.mmd`, true);
   };
 
   return (
