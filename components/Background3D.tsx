@@ -52,7 +52,9 @@ const Background3D = () => {
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-    const sprite = new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/sprites/disc.png');
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.setCrossOrigin('');
+    const sprite = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/sprites/disc.png');
 
     const material = new THREE.PointsMaterial({
         size: 0.5,
@@ -142,6 +144,8 @@ const Background3D = () => {
         }
         geometry.dispose();
         material.dispose();
+        sprite.dispose();
+        renderer.dispose();
     };
   }, []);
 
