@@ -34,7 +34,7 @@ const CodeViewer: React.FC<CodeViewerProps> = ({ code, language, title = "archit
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
     };
 
     return (
