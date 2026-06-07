@@ -206,13 +206,16 @@ const DownloadBtn = () => {
           viewport: { x: 0, y: 0, zoom: 1 }
       };
       
-      const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-        JSON.stringify(flow, null, 2)
-      )}`;
+      const jsonString = JSON.stringify(flow, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = jsonString;
+      link.href = url;
       link.download = `${getFilePrefix()}.json`;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
   const exportMermaid = () => {
@@ -224,7 +227,10 @@ const DownloadBtn = () => {
       const link = document.createElement('a');
       link.href = url;
       link.download = `${getFilePrefix()}.mmd`;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 100);
   };
 
   return (
