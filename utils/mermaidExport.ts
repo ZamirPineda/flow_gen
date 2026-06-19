@@ -10,6 +10,14 @@ const cleanId = (id: string): string => {
 };
 
 /**
+ * Sanitizes a label to prevent Mermaid syntax injection
+ */
+const sanitizeLabel = (label: string | null | undefined): string => {
+    if (!label) return '';
+    return label.replace(/"/g, "'");
+};
+
+/**
  * Converts React Flow nodes and edges into a Mermaid.js definition string.
  */
 export const toMermaid = (
@@ -46,7 +54,8 @@ const generateSequenceDiagram = (nodes: Node[], edges: Edge[]): string => {
     actors.forEach(node => {
         // Use 'actor' keyword for Users/Clients, 'participant' for others
         const type = node.data.variant === 'client' ? 'actor' : 'participant';
-        mmd += `    ${type} ${cleanId(node.id)} as ${node.data.label}\n`;
+        const safeLabel = sanitizeLabel(node.data.label);
+        mmd += `    ${type} ${cleanId(node.id)} as "${safeLabel}"\n`;
     });
 
     mmd += '\n';
@@ -58,7 +67,7 @@ const generateSequenceDiagram = (nodes: Node[], edges: Edge[]): string => {
     sortedEdges.forEach(edge => {
         const sourceId = cleanId(edge.source);
         const targetId = cleanId(edge.target);
-        const label = edge.label || '';
+        const label = sanitizeLabel(edge.label as string | undefined);
         
         // Determine arrow type based on message type
         // standard: ->>, return: -->>, async: -)
@@ -94,7 +103,7 @@ const generateFlowchart = (nodes: Node[], edges: Edge[], direction: string): str
     // 1. Handle Groups (Subgraphs)
     groups.forEach(group => {
         const groupId = cleanId(group.id);
-        const label = group.data.label || 'Group';
+        const label = sanitizeLabel(group.data.label) || 'Group';
         
         mmd += `    subgraph ${groupId} ["${label}"]\n`;
         mmd += `        direction ${dir}\n`; // Inherit direction
@@ -103,9 +112,7 @@ const generateFlowchart = (nodes: Node[], edges: Edge[], direction: string): str
         const children = simpleNodes.filter(n => n.parentNode === group.id);
         children.forEach(child => {
             const childId = cleanId(child.id);
-            const childLabel = child.data.label || 'Node';
-            // Sanitize label quotes
-            const safeLabel = childLabel.replace(/"/g, "'");
+            const safeLabel = sanitizeLabel(child.data.label) || 'Node';
             
             // Add node definition
             // Shape determination based on variant could be added here
@@ -126,7 +133,7 @@ const generateFlowchart = (nodes: Node[], edges: Edge[], direction: string): str
     simpleNodes.forEach(node => {
         if (!processedNodeIds.has(node.id)) {
             const nodeId = cleanId(node.id);
-            const label = node.data.label.replace(/"/g, "'");
+            const label = sanitizeLabel(node.data.label);
             const shapeOpen = node.data.variant === 'database' ? '[(' : '[';
             const shapeClose = node.data.variant === 'database' ? ')]' : ']';
             
@@ -146,7 +153,7 @@ const generateFlowchart = (nodes: Node[], edges: Edge[], direction: string): str
         const targetExists = allNodes.some(n => cleanId(n.id) === targetId);
 
         if (sourceExists && targetExists) {
-            let label = edge.label ? `|"${edge.label}"|` : '';
+            let label = edge.label ? `|"${sanitizeLabel(edge.label as string)}"|` : '';
             // Basic arrow
             mmd += `    ${sourceId} -->${label} ${targetId}\n`;
         }
