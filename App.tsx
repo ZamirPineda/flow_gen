@@ -55,7 +55,7 @@ const App = () => {
 
     // --- HELPERS ---
     const addToast = useCallback((title: string, message: string, type: ToastType = 'info') => {
-        setToasts(prev => [...prev, { id: Math.random().toString(), title, message, type }]);
+        setToasts(prev => [...prev, { id: crypto.randomUUID(), title, message, type }]);
     }, []);
     const removeToast = (id: string) => setToasts(prev => prev.filter(t => t.id !== id));
 
