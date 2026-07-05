@@ -4,6 +4,7 @@ import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerTy
 import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
+import { validateDiagramState } from '../utils/validation';
 import _ from 'lodash';
 
 // Helper to determine palette
@@ -47,13 +48,20 @@ export const useFlowController = (
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
-                if (parsed.nodes && parsed.nodes.length > 0) {
-                    setNodes(parsed.nodes);
-                    setEdges(parsed.edges || []);
-                    if (parsed.layoutDirection) setLayoutDirection(parsed.layoutDirection);
-                    if (parsed.currentDiagramType) setCurrentDiagramType(parsed.currentDiagramType);
-                    // Viewport restore happens via onInit typically, or we wait for rfInstance
-                    // We can defer that to when rfInstance is ready below
+                const validation = validateDiagramState(parsed);
+
+                if (validation.valid && validation.data) {
+                    const validData = validation.data;
+                    if (validData.nodes && validData.nodes.length > 0) {
+                        setNodes(validData.nodes);
+                        setEdges(validData.edges || []);
+                        if (validData.layoutDirection) setLayoutDirection(validData.layoutDirection);
+                        if (validData.currentDiagramType) setCurrentDiagramType(validData.currentDiagramType);
+                        // Viewport restore happens via onInit typically, or we wait for rfInstance
+                        // We can defer that to when rfInstance is ready below
+                    }
+                } else {
+                    console.error("Invalid saved diagram state:", validation.error);
                 }
             } catch (e) {
                 console.error("Failed to load saved diagram", e);
@@ -169,7 +177,15 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const parsedJSON = JSON.parse(content);
+                const validation = validateDiagramState(parsedJSON);
+
+                if (!validation.valid || !validation.data) {
+                    addToast("Validation Error", validation.error || "Invalid file format.", "error");
+                    return;
+                }
+
+                const flowData = validation.data;
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
@@ -182,8 +198,8 @@ export const useFlowController = (
                     const processedNodes = flowData.nodes.map((n: any) => {
                         if (n.type === 'group') {
                             hasGroups = true;
-                            if (n.data.isTransparent) anyTransparent = true;
-                            if (n.data.collapsed) anyCollapsed = true;
+                            if (n.data?.isTransparent) anyTransparent = true;
+                            if (n.data?.collapsed) anyCollapsed = true;
 
                             // CRITICAL: Capture original dimensions from import so we don't shrink later
                             const w = n.style?.width || n.width;
@@ -193,8 +209,8 @@ export const useFlowController = (
                                 ...n,
                                 data: {
                                     ...n.data,
-                                    expandedWidth: n.data.expandedWidth || (w ? Number(w) : 400),
-                                    expandedHeight: n.data.expandedHeight || (h ? Number(h) : 400)
+                                    expandedWidth: n.data?.expandedWidth || (w ? Number(w) : 400),
+                                    expandedHeight: n.data?.expandedHeight || (h ? Number(h) : 400)
                                 }
                             };
                         }
@@ -230,9 +246,9 @@ export const useFlowController = (
                 } else {
                     addToast("Error", "Invalid JSON format.", "error");
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
-                addToast("Error", "Failed to parse JSON file.", "error");
+                addToast("Error", err.message || "Failed to parse JSON file.", "error");
             }
         };
         reader.readAsText(file);
