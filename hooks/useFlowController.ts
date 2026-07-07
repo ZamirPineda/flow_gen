@@ -4,6 +4,7 @@ import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerTy
 import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
+import { validateDiagramState } from '../utils/validation';
 import _ from 'lodash';
 
 // Helper to determine palette
@@ -169,7 +170,8 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const rawFlowData = JSON.parse(content);
+                const flowData = validateDiagramState(rawFlowData);
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
@@ -230,9 +232,9 @@ export const useFlowController = (
                 } else {
                     addToast("Error", "Invalid JSON format.", "error");
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
-                addToast("Error", "Failed to parse JSON file.", "error");
+                addToast("Error", `Failed to import diagram: ${err.message}`, "error");
             }
         };
         reader.readAsText(file);
