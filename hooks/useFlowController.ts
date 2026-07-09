@@ -5,6 +5,7 @@ import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
 import _ from 'lodash';
+import { validateDiagramState } from '../utils/validation';
 
 // Helper to determine palette
 const getThemePalette = (type: DiagramType): string[] => {
@@ -171,7 +172,7 @@ export const useFlowController = (
                 const content = e.target?.result as string;
                 const flowData = JSON.parse(content);
 
-                if (flowData.nodes && flowData.edges) {
+                if (validateDiagramState(flowData)) {
                     takeSnapshot(nodes, edges);
 
                     // PRE-PROCESS NODES TO FIX GROUPS & SYNC STATE
