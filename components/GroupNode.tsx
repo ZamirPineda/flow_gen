@@ -11,10 +11,13 @@ const GroupNode = ({ id, data, selected }: NodeProps<NodeData>) => {
     // Detect Backend Design mode via data prop
     const isBackend = data.diagramType === DiagramType.BACKEND_DESIGN;
 
+    // Centralized visibility logic
+    const isCollapsed = Boolean(data.collapsed);
+    const isTransparent = Boolean(data.isTransparent && !isCollapsed);
+
     const handleToggle = (e: React.MouseEvent) => {
         e.stopPropagation();
 
-        const isCollapsed = data.collapsed;
         const nodes = getNodes();
 
         const childrenIds = nodes
@@ -81,7 +84,7 @@ const GroupNode = ({ id, data, selected }: NodeProps<NodeData>) => {
                 className={`
                 relative w-full h-full rounded-lg transition-all duration-300 group
                 ${selected ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-600/30 bg-slate-800/10'}
-                ${data.isTransparent ? '!border-transparent !bg-transparent' : ''}
+                ${isTransparent ? '!border-transparent !bg-transparent' : ''}
             `}
                 style={{
                     borderWidth: 1,
@@ -89,7 +92,7 @@ const GroupNode = ({ id, data, selected }: NodeProps<NodeData>) => {
                 }}
             >
                 {/* Centered Label for Layers */}
-                <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-slate-900 border border-slate-700 rounded-full shadow-sm flex items-center gap-1.5 z-20 ${data.isTransparent ? 'opacity-0' : 'opacity-100'}`}>
+                <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 bg-slate-900 border border-slate-700 rounded-full shadow-sm flex items-center gap-1.5 z-20 ${isTransparent ? 'opacity-0' : 'opacity-100'}`}>
                     <Layers className="w-3 h-3 text-slate-500" />
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
                         {data.label}
@@ -100,11 +103,6 @@ const GroupNode = ({ id, data, selected }: NodeProps<NodeData>) => {
     }
 
     // --- STANDARD GROUP STYLING ---
-
-    const isCollapsed = data.collapsed;
-    // CRITICAL FIX: Ensure a collapsed group is NEVER transparent, otherwise it becomes invisible.
-    // Transparency (Clean View) should only apply to expanded containers.
-    const isTransparent = data.isTransparent && !isCollapsed;
 
     // Base classes that always apply
     const baseClasses = "relative w-full h-full rounded-2xl border-2 transition-all duration-300 group";
