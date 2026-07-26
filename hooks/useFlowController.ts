@@ -5,6 +5,7 @@ import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
 import _ from 'lodash';
+import { validateDiagramState } from '../utils/validation';
 
 // Helper to determine palette
 const getThemePalette = (type: DiagramType): string[] => {
@@ -46,7 +47,9 @@ export const useFlowController = (
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (savedData) {
             try {
-                const parsed = JSON.parse(savedData);
+                const rawParsed = JSON.parse(savedData);
+                const parsed = validateDiagramState(rawParsed);
+
                 if (parsed.nodes && parsed.nodes.length > 0) {
                     setNodes(parsed.nodes);
                     setEdges(parsed.edges || []);
@@ -55,8 +58,9 @@ export const useFlowController = (
                     // Viewport restore happens via onInit typically, or we wait for rfInstance
                     // We can defer that to when rfInstance is ready below
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error("Failed to load saved diagram", e);
+                addToast("Error", "Failed to load saved diagram. State may be corrupted.", "error");
             }
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -169,7 +173,8 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const rawData = JSON.parse(content);
+                const flowData = validateDiagramState(rawData);
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
@@ -230,9 +235,9 @@ export const useFlowController = (
                 } else {
                     addToast("Error", "Invalid JSON format.", "error");
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
-                addToast("Error", "Failed to parse JSON file.", "error");
+                addToast("Error", err.message || "Failed to parse JSON file.", "error");
             }
         };
         reader.readAsText(file);
