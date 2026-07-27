@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerType, ReactFlowInstance } from 'reactflow';
 import { getLayoutedElements } from '../utils/layout';
+import { validateDiagramState } from '../utils/validation';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
 import _ from 'lodash';
@@ -169,10 +170,10 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const rawData = JSON.parse(content);
+                const flowData = validateDiagramState(rawData);
 
-                if (flowData.nodes && flowData.edges) {
-                    takeSnapshot(nodes, edges);
+                takeSnapshot(nodes, edges);
 
                     // PRE-PROCESS NODES TO FIX GROUPS & SYNC STATE
                     let hasGroups = false;
@@ -213,8 +214,8 @@ export const useFlowController = (
                     setNodes(processedNodes);
                     setEdges(flowData.edges);
 
-                    if (flowData.viewport && rfInstance) {
-                        rfInstance.setViewport(flowData.viewport);
+                    if ((flowData as any).viewport && rfInstance) {
+                        rfInstance.setViewport((flowData as any).viewport);
                     }
 
                     // Sync UI Toggles
@@ -227,12 +228,9 @@ export const useFlowController = (
                     }
 
                     addToast("Import", "Diagram imported successfully.", "success");
-                } else {
-                    addToast("Error", "Invalid JSON format.", "error");
-                }
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
-                addToast("Error", "Failed to parse JSON file.", "error");
+                addToast("Error", err.message || "Failed to parse JSON file.", "error");
             }
         };
         reader.readAsText(file);
@@ -405,7 +403,7 @@ export const useFlowController = (
         }
 
         const newNode: Node = {
-            id: `node-${Date.now()}`,
+            id: `node-${crypto.randomUUID()}`,
             type: 'custom',
             position: { x: newX, y: newY },
             data: {
@@ -434,7 +432,7 @@ export const useFlowController = (
         }
 
         const newGroup: Node = {
-            id: `group-${Date.now()}`,
+            id: `group-${crypto.randomUUID()}`,
             type: 'group',
             position: { x: newX, y: newY },
             style: { width: 400, height: 400 },
@@ -464,7 +462,7 @@ export const useFlowController = (
         }
 
         const newText: Node = {
-            id: `text-${Date.now()}`,
+            id: `text-${crypto.randomUUID()}`,
             type: 'title', // Uses the existing 'title' node type for generic text
             position: { x: newX, y: newY },
             data: {
