@@ -4,6 +4,7 @@ import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerTy
 import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
+import { validateDiagramState } from '../utils/validation';
 import _ from 'lodash';
 
 // Helper to determine palette
@@ -46,7 +47,7 @@ export const useFlowController = (
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (savedData) {
             try {
-                const parsed = JSON.parse(savedData);
+                const parsed = validateDiagramState(savedData);
                 if (parsed.nodes && parsed.nodes.length > 0) {
                     setNodes(parsed.nodes);
                     setEdges(parsed.edges || []);
@@ -57,6 +58,7 @@ export const useFlowController = (
                 }
             } catch (e) {
                 console.error("Failed to load saved diagram", e);
+                addToast("Error", "Failed to load saved diagram. Corrupted state.", "error");
             }
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -169,7 +171,7 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const flowData = validateDiagramState(content);
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
