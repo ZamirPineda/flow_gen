@@ -1,5 +1,6 @@
 
 import { Node, Edge } from 'reactflow';
+import DOMPurify from 'dompurify';
 import { DiagramType } from '../types';
 
 /**
@@ -7,6 +8,18 @@ import { DiagramType } from '../types';
  */
 const cleanId = (id: string): string => {
     return id.replace(/[^a-zA-Z0-9_]/g, '_');
+};
+
+/**
+ * Sanitizes a label for Mermaid output (handles null/undefined, strips malicious HTML using DOMPurify,
+ * and replaces double quotes with single quotes to prevent Mermaid syntax injection).
+ */
+const sanitizeLabel = (label: any): string => {
+    if (!label || typeof label !== 'string') return '';
+    // Use DOMPurify to strip any malicious HTML tags or attributes
+    const cleanHTML = DOMPurify.sanitize(label, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    // Replace double quotes with single quotes to prevent Mermaid syntax injection
+    return cleanHTML.replace(/"/g, "'");
 };
 
 /**
@@ -46,7 +59,7 @@ const generateSequenceDiagram = (nodes: Node[], edges: Edge[]): string => {
     actors.forEach(node => {
         // Use 'actor' keyword for Users/Clients, 'participant' for others
         const type = node.data.variant === 'client' ? 'actor' : 'participant';
-        mmd += `    ${type} ${cleanId(node.id)} as ${node.data.label}\n`;
+        mmd += `    ${type} ${cleanId(node.id)} as "${sanitizeLabel(node.data.label)}"\n`;
     });
 
     mmd += '\n';
@@ -58,7 +71,7 @@ const generateSequenceDiagram = (nodes: Node[], edges: Edge[]): string => {
     sortedEdges.forEach(edge => {
         const sourceId = cleanId(edge.source);
         const targetId = cleanId(edge.target);
-        const label = edge.label || '';
+        const label = sanitizeLabel(edge.label);
         
         // Determine arrow type based on message type
         // standard: ->>, return: -->>, async: -)
@@ -94,18 +107,16 @@ const generateFlowchart = (nodes: Node[], edges: Edge[], direction: string): str
     // 1. Handle Groups (Subgraphs)
     groups.forEach(group => {
         const groupId = cleanId(group.id);
-        const label = group.data.label || 'Group';
+        const safeGroupLabel = sanitizeLabel(group.data.label || 'Group');
         
-        mmd += `    subgraph ${groupId} ["${label}"]\n`;
+        mmd += `    subgraph ${groupId} ["${safeGroupLabel}"]\n`;
         mmd += `        direction ${dir}\n`; // Inherit direction
 
         // Find children of this group
         const children = simpleNodes.filter(n => n.parentNode === group.id);
         children.forEach(child => {
             const childId = cleanId(child.id);
-            const childLabel = child.data.label || 'Node';
-            // Sanitize label quotes
-            const safeLabel = childLabel.replace(/"/g, "'");
+            const safeLabel = sanitizeLabel(child.data.label || 'Node');
             
             // Add node definition
             // Shape determination based on variant could be added here
@@ -126,11 +137,11 @@ const generateFlowchart = (nodes: Node[], edges: Edge[], direction: string): str
     simpleNodes.forEach(node => {
         if (!processedNodeIds.has(node.id)) {
             const nodeId = cleanId(node.id);
-            const label = node.data.label.replace(/"/g, "'");
+            const safeLabel = sanitizeLabel(node.data.label);
             const shapeOpen = node.data.variant === 'database' ? '[(' : '[';
             const shapeClose = node.data.variant === 'database' ? ')]' : ']';
             
-            mmd += `    ${nodeId}${shapeOpen}"${label}"${shapeClose}\n`;
+            mmd += `    ${nodeId}${shapeOpen}"${safeLabel}"${shapeClose}\n`;
         }
     });
 
@@ -146,7 +157,7 @@ const generateFlowchart = (nodes: Node[], edges: Edge[], direction: string): str
         const targetExists = allNodes.some(n => cleanId(n.id) === targetId);
 
         if (sourceExists && targetExists) {
-            let label = edge.label ? `|"${edge.label}"|` : '';
+            let label = edge.label ? `|"${sanitizeLabel(edge.label)}"|` : '';
             // Basic arrow
             mmd += `    ${sourceId} -->${label} ${targetId}\n`;
         }
