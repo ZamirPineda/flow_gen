@@ -4,6 +4,7 @@ import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerTy
 import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
+import { validateDiagramState } from '../utils/validation';
 import _ from 'lodash';
 
 // Helper to determine palette
@@ -47,11 +48,12 @@ export const useFlowController = (
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
-                if (parsed.nodes && parsed.nodes.length > 0) {
-                    setNodes(parsed.nodes);
-                    setEdges(parsed.edges || []);
-                    if (parsed.layoutDirection) setLayoutDirection(parsed.layoutDirection);
-                    if (parsed.currentDiagramType) setCurrentDiagramType(parsed.currentDiagramType);
+                const validated = validateDiagramState(parsed);
+                if (validated.nodes && validated.nodes.length > 0) {
+                    setNodes(validated.nodes);
+                    setEdges(validated.edges || []);
+                    if (validated.layoutDirection) setLayoutDirection(validated.layoutDirection);
+                    if (validated.currentDiagramType) setCurrentDiagramType(validated.currentDiagramType);
                     // Viewport restore happens via onInit typically, or we wait for rfInstance
                     // We can defer that to when rfInstance is ready below
                 }
@@ -169,7 +171,8 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const parsed = JSON.parse(content);
+                const flowData = validateDiagramState(parsed);
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
