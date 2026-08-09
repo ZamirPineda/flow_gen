@@ -5,6 +5,7 @@ import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
 import _ from 'lodash';
+import { validateDiagramState } from '../utils/validation';
 
 // Helper to determine palette
 const getThemePalette = (type: DiagramType): string[] => {
@@ -46,7 +47,7 @@ export const useFlowController = (
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (savedData) {
             try {
-                const parsed = JSON.parse(savedData);
+                const parsed = validateDiagramState(JSON.parse(savedData));
                 if (parsed.nodes && parsed.nodes.length > 0) {
                     setNodes(parsed.nodes);
                     setEdges(parsed.edges || []);
@@ -169,7 +170,7 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const flowData = validateDiagramState(JSON.parse(content));
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
