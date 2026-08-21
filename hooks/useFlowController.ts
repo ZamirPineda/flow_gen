@@ -1,3 +1,4 @@
+import { validateDiagramState } from "../utils/validation";
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerType, ReactFlowInstance } from 'reactflow';
@@ -47,16 +48,22 @@ export const useFlowController = (
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
-                if (parsed.nodes && parsed.nodes.length > 0) {
-                    setNodes(parsed.nodes);
-                    setEdges(parsed.edges || []);
-                    if (parsed.layoutDirection) setLayoutDirection(parsed.layoutDirection);
-                    if (parsed.currentDiagramType) setCurrentDiagramType(parsed.currentDiagramType);
+                const validState = validateDiagramState(parsed);
+
+                if (validState && validState.nodes && validState.nodes.length > 0) {
+                    setNodes(validState.nodes);
+                    setEdges(validState.edges || []);
+                    if (validState.layoutDirection) setLayoutDirection(validState.layoutDirection);
+                    if (validState.currentDiagramType) setCurrentDiagramType(validState.currentDiagramType);
                     // Viewport restore happens via onInit typically, or we wait for rfInstance
                     // We can defer that to when rfInstance is ready below
+                } else {
+                    console.warn("Invalid diagram state found in local storage. State ignored.");
+                    addToast("Warning", "Diagram state in storage was invalid and could not be loaded.", "warning");
                 }
             } catch (e) {
                 console.error("Failed to load saved diagram", e);
+                addToast("Error", "Failed to parse stored diagram state.", "error");
             }
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -169,9 +176,10 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const parsedContent = JSON.parse(content);
+                const flowData = validateDiagramState(parsedContent);
 
-                if (flowData.nodes && flowData.edges) {
+                if (flowData && flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
 
                     // PRE-PROCESS NODES TO FIX GROUPS & SYNC STATE
