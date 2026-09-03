@@ -14,6 +14,16 @@ interface CostSummaryProps {
     onClose: () => void;
 }
 
+const escapeCSV = (value: string | number): string => {
+    if (value === null || value === undefined) return '""';
+    const str = String(value);
+    let escaped = str.replace(/"/g, '""');
+    if (/^[=+\-@\t\r]/.test(escaped)) {
+        escaped = "'" + escaped;
+    }
+    return `"${escaped}"`;
+};
+
 const CostSummary: React.FC<CostSummaryProps> = ({ breakdown, total, onClose }) => {
     
     // Sort by cost desc
@@ -21,12 +31,10 @@ const CostSummary: React.FC<CostSummaryProps> = ({ breakdown, total, onClose }) 
 
     const handleDownloadCSV = () => {
         const headers = "Component,Technology,Monthly Cost (USD)\n";
-        const rows = sorted.map(item => `"${item.label}","${item.tech}",${item.cost}`).join("\n");
-        const csvContent = "data:text/csv;charset=utf-8," + headers + rows + `\n"TOTAL","",${total}`;
-        
-        const encodedUri = encodeURI(csvContent);
+        const rows = sorted.map(item => `${escapeCSV(item.label)},${escapeCSV(item.tech)},${item.cost}`).join("\n");
+        const encodedUri = encodeURIComponent(headers + rows + `\n"TOTAL","",${total}`);
         const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
+        link.setAttribute("href", "data:text/csv;charset=utf-8," + encodedUri);
         link.setAttribute("download", "cloud_cost_estimate.csv");
         document.body.appendChild(link);
         link.click();
