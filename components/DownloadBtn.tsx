@@ -8,7 +8,9 @@ const downloadFile = (dataUrl: string, filename: string) => {
   const a = document.createElement('a');
   a.setAttribute('download', filename);
   a.setAttribute('href', dataUrl);
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
 };
 
 const DownloadBtn = () => {
@@ -206,13 +208,10 @@ const DownloadBtn = () => {
           viewport: { x: 0, y: 0, zoom: 1 }
       };
       
-      const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+      const jsonString = `data:application/json;charset=utf-8,${encodeURIComponent(
         JSON.stringify(flow, null, 2)
       )}`;
-      const link = document.createElement('a');
-      link.href = jsonString;
-      link.download = `${getFilePrefix()}.json`;
-      link.click();
+      downloadFile(jsonString, `${getFilePrefix()}.json`);
   };
 
   const exportMermaid = () => {
@@ -221,10 +220,7 @@ const DownloadBtn = () => {
       const mermaidString = toMermaid(nodes, edges, 'LR');
       const blob = new Blob([mermaidString], { type: 'text/vnd.mermaid' });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${getFilePrefix()}.mmd`;
-      link.click();
+      downloadFile(url, `${getFilePrefix()}.mmd`);
   };
 
   return (
