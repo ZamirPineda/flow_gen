@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerType, ReactFlowInstance } from 'reactflow';
 import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
+import { validateDiagramState, cleanDiagramState } from '../utils/validation';
 import { THEME } from '../theme';
 import _ from 'lodash';
 
@@ -46,7 +47,13 @@ export const useFlowController = (
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (savedData) {
             try {
-                const parsed = JSON.parse(savedData);
+                const parsedRaw = JSON.parse(savedData);
+                if (!validateDiagramState(parsedRaw)) {
+                    console.error("Invalid diagram state in localStorage");
+                    localStorage.removeItem(STORAGE_KEY);
+                    return;
+                }
+                const parsed = cleanDiagramState(parsedRaw);
                 if (parsed.nodes && parsed.nodes.length > 0) {
                     setNodes(parsed.nodes);
                     setEdges(parsed.edges || []);
@@ -169,7 +176,12 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const flowDataRaw = JSON.parse(content);
+                if (!validateDiagramState(flowDataRaw)) {
+                    addToast("Import Error", "Invalid or corrupted diagram file.", "error");
+                    return;
+                }
+                const flowData = cleanDiagramState(flowDataRaw);
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
