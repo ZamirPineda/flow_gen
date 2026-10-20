@@ -405,7 +405,7 @@ export const useFlowController = (
         }
 
         const newNode: Node = {
-            id: `node-${Date.now()}`,
+            id: `node-${crypto.randomUUID()}`,
             type: 'custom',
             position: { x: newX, y: newY },
             data: {
@@ -434,7 +434,7 @@ export const useFlowController = (
         }
 
         const newGroup: Node = {
-            id: `group-${Date.now()}`,
+            id: `group-${crypto.randomUUID()}`,
             type: 'group',
             position: { x: newX, y: newY },
             style: { width: 400, height: 400 },
@@ -464,7 +464,7 @@ export const useFlowController = (
         }
 
         const newText: Node = {
-            id: `text-${Date.now()}`,
+            id: `text-${crypto.randomUUID()}`,
             type: 'title', // Uses the existing 'title' node type for generic text
             position: { x: newX, y: newY },
             data: {
