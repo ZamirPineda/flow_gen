@@ -166,10 +166,19 @@ export const useFlowController = (
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                let flowData = JSON.parse(content);
+
+                try {
+                    const { validateDiagramState } = await import('../utils/validation');
+                    flowData = validateDiagramState(flowData);
+                } catch (validationError: any) {
+                    console.error('Validation Error:', validationError);
+                    addToast("Import Failed", validationError.message || "Invalid diagram file format.", "error");
+                    return;
+                }
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
