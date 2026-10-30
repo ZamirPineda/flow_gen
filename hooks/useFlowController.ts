@@ -5,6 +5,8 @@ import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
 import _ from 'lodash';
+import { validateDiagramState } from '../utils/validation';
+import { ToastType } from '../types';
 
 // Helper to determine palette
 const getThemePalette = (type: DiagramType): string[] => {
@@ -24,7 +26,7 @@ export const useFlowController = (
     initialNodes: Node[],
     initialEdges: Edge[],
     takeSnapshot: (n: Node[], e: Edge[]) => void,
-    addToast: (title: string, msg: string, type?: any) => void
+    addToast: (title: string, msg: string, type?: ToastType) => void
 ) => {
     // --- STATE INITIALIZATION WITH PERSISTENCE ---
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -47,6 +49,12 @@ export const useFlowController = (
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
+
+                if (!validateDiagramState(parsed)) {
+                    addToast("Error", "Invalid diagram state detected in local storage.", "error");
+                    return;
+                }
+
                 if (parsed.nodes && parsed.nodes.length > 0) {
                     setNodes(parsed.nodes);
                     setEdges(parsed.edges || []);
@@ -57,6 +65,7 @@ export const useFlowController = (
                 }
             } catch (e) {
                 console.error("Failed to load saved diagram", e);
+                addToast("Error", "Failed to load saved diagram.", "error");
             }
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -170,6 +179,11 @@ export const useFlowController = (
             try {
                 const content = e.target?.result as string;
                 const flowData = JSON.parse(content);
+
+                if (!validateDiagramState(flowData)) {
+                    addToast("Error", "Invalid JSON schema for diagram.", "error");
+                    return;
+                }
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
