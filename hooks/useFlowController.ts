@@ -5,6 +5,7 @@ import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
 import _ from 'lodash';
+import { validateDiagramState } from '../utils/validation';
 
 // Helper to determine palette
 const getThemePalette = (type: DiagramType): string[] => {
@@ -47,16 +48,19 @@ export const useFlowController = (
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
-                if (parsed.nodes && parsed.nodes.length > 0) {
-                    setNodes(parsed.nodes);
-                    setEdges(parsed.edges || []);
-                    if (parsed.layoutDirection) setLayoutDirection(parsed.layoutDirection);
-                    if (parsed.currentDiagramType) setCurrentDiagramType(parsed.currentDiagramType);
+                const validated = validateDiagramState(parsed);
+
+                if (validated.nodes && validated.nodes.length > 0) {
+                    setNodes(validated.nodes);
+                    setEdges(validated.edges || []);
+                    if (validated.layoutDirection) setLayoutDirection(validated.layoutDirection);
+                    if (validated.currentDiagramType) setCurrentDiagramType(validated.currentDiagramType);
                     // Viewport restore happens via onInit typically, or we wait for rfInstance
                     // We can defer that to when rfInstance is ready below
                 }
             } catch (e) {
                 console.error("Failed to load saved diagram", e);
+                // Intentionally silent failure for localStorage to not interrupt UX if invalid
             }
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -169,7 +173,8 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const parsedData = JSON.parse(content);
+                const flowData = validateDiagramState(parsedData);
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
@@ -179,7 +184,7 @@ export const useFlowController = (
                     let anyTransparent = false;
                     let anyCollapsed = false;
 
-                    const processedNodes = flowData.nodes.map((n: any) => {
+                    const processedNodes = flowData.nodes.map((n: Node<NodeData>) => {
                         if (n.type === 'group') {
                             hasGroups = true;
                             if (n.data.isTransparent) anyTransparent = true;
@@ -226,13 +231,14 @@ export const useFlowController = (
                         setAreGroupsExpanded(true);
                     }
 
-                    addToast("Import", "Diagram imported successfully.", "success");
+                    addToast("Import", "Diagram imported successfully.", "success" as ToastType);
                 } else {
-                    addToast("Error", "Invalid JSON format.", "error");
+                    addToast("Error", "Invalid JSON format.", "error" as ToastType);
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
-                addToast("Error", "Failed to parse JSON file.", "error");
+                const msg = err.message || "Failed to parse JSON file.";
+                addToast("Error", msg, "error" as ToastType);
             }
         };
         reader.readAsText(file);
