@@ -5,6 +5,7 @@ import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
 import { THEME } from '../theme';
 import _ from 'lodash';
+import { validateDiagramState } from '../utils/validation';
 
 // Helper to determine palette
 const getThemePalette = (type: DiagramType): string[] => {
@@ -47,11 +48,12 @@ export const useFlowController = (
         if (savedData) {
             try {
                 const parsed = JSON.parse(savedData);
-                if (parsed.nodes && parsed.nodes.length > 0) {
-                    setNodes(parsed.nodes);
-                    setEdges(parsed.edges || []);
-                    if (parsed.layoutDirection) setLayoutDirection(parsed.layoutDirection);
-                    if (parsed.currentDiagramType) setCurrentDiagramType(parsed.currentDiagramType);
+                const validData = validateDiagramState(parsed);
+                if (validData && validData.nodes && validData.nodes.length > 0) {
+                    setNodes(validData.nodes);
+                    setEdges(validData.edges || []);
+                    if (validData.layoutDirection) setLayoutDirection(validData.layoutDirection as 'TB' | 'LR');
+                    if (validData.currentDiagramType) setCurrentDiagramType(validData.currentDiagramType);
                     // Viewport restore happens via onInit typically, or we wait for rfInstance
                     // We can defer that to when rfInstance is ready below
                 }
@@ -169,9 +171,10 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const parsedData = JSON.parse(content);
+                const flowData = validateDiagramState(parsedData);
 
-                if (flowData.nodes && flowData.edges) {
+                if (flowData && flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
 
                     // PRE-PROCESS NODES TO FIX GROUPS & SYNC STATE
