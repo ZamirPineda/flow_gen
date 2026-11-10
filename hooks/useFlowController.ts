@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerType, ReactFlowInstance } from 'reactflow';
 import { getLayoutedElements } from '../utils/layout';
 import { DiagramType, NodeData } from '../types';
+import { validateDiagramState } from '../utils/validation';
 import { THEME } from '../theme';
 import _ from 'lodash';
 
@@ -46,7 +47,8 @@ export const useFlowController = (
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (savedData) {
             try {
-                const parsed = JSON.parse(savedData);
+                let parsed = JSON.parse(savedData);
+                parsed = validateDiagramState(parsed);
                 if (parsed.nodes && parsed.nodes.length > 0) {
                     setNodes(parsed.nodes);
                     setEdges(parsed.edges || []);
@@ -57,6 +59,7 @@ export const useFlowController = (
                 }
             } catch (e) {
                 console.error("Failed to load saved diagram", e);
+                addToast("Error", "Failed to load saved diagram.", "error");
             }
         }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -169,7 +172,14 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                let flowData = JSON.parse(content);
+
+                try {
+                    flowData = validateDiagramState(flowData);
+                } catch (validationErr) {
+                    addToast("Error", "Invalid diagram data structure.", "error");
+                    return;
+                }
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
