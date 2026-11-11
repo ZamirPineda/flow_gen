@@ -1,3 +1,4 @@
+import { validateDiagramState } from '../utils/validation';
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNodesState, useEdgesState, addEdge, Connection, Edge, Node, MarkerType, ReactFlowInstance } from 'reactflow';
@@ -46,7 +47,7 @@ export const useFlowController = (
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (savedData) {
             try {
-                const parsed = JSON.parse(savedData);
+                const parsed = validateDiagramState(JSON.parse(savedData));
                 if (parsed.nodes && parsed.nodes.length > 0) {
                     setNodes(parsed.nodes);
                     setEdges(parsed.edges || []);
@@ -169,7 +170,7 @@ export const useFlowController = (
         reader.onload = (e) => {
             try {
                 const content = e.target?.result as string;
-                const flowData = JSON.parse(content);
+                const flowData = validateDiagramState(JSON.parse(content));
 
                 if (flowData.nodes && flowData.edges) {
                     takeSnapshot(nodes, edges);
